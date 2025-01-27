@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Location item -->
+    <item
+        android:id="@+id/nav_order"
+        android:icon="@drawable/baseline_add_location_24"
+        android:title="Booked Food" />
+
+    <!-- Profile item -->
+    <item
+        android:id="@+id/nav_add"
+        android:title=""
+        android:enabled="false"/>
+
+    <!-- Settings item (or another item) -->
+    <item
+        android:id="@+id/nav_account"
+        android:icon="@drawable/baseline_account_circle_24"
+        android:title="Profile" />
+</menu>

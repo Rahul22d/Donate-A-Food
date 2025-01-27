@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/action_home">
+
+    <fragment
+        android:id="@+id/action_home"
+        android:name="com.rahul.donate_a_food.Fragments.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/action_history"
+        android:name="com.rahul.donate_a_food.Fragments.HistoryFragment"
+        android:label="@string/history"
+        tools:layout="@layout/fragment_history" />
+
+    <fragment
+        android:id="@+id/action_help"
+        android:name="com.rahul.donate_a_food.Fragments.HelpFragment"
+        android:label="@string/help"
+        tools:layout="@layout/fragment_help" />
+
+    <fragment
+        android:id="@+id/action_feedback"
+        android:name="com.rahul.donate_a_food.Fragments.FeedBackFragment"
+        android:label="@string/feedback"
+        tools:layout="@layout/fragment_feed_back" />
+
+    <fragment
+        android:id="@+id/action_share"
+        android:name="com.rahul.donate_a_food.Fragments.ShareFragment"
+        android:label="@string/share"
+        tools:layout="@layout/fragment_share" />
+    <fragment
+        android:id="@+id/nav_account"
+        android:name="com.rahul.donate_a_food.Fragments.ProfileFragment"
+        android:label="@string/profile"
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/nav_add"
+        android:name="com.rahul.donate_a_food.Fragments.ProductFragment"
+        android:label="@string/add"
+        tools:layout="@layout/fragment_product" />
+    <fragment
+        android:id="@+id/nav_location"
+        android:name="com.rahul.donate_a_food.Fragments.LocationFragment"
+        android:label="@string/location"
+        tools:layout="@layout/fragment_location" />
+    <fragment
+        android:id="@+id/nav_bookedFood"
+        android:name="com.rahul.donate_a_food.Fragments.FoodBookedFragment"
+        android:label="@string/Booked"
+        tools:layout="@layout/fragment_food_booked" />
+
+</navigation>

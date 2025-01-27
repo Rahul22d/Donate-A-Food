@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "71266374607",
+    "firebase_url": "https://project-b77f4-default-rtdb.firebaseio.com",
+    "project_id": "project-b77f4",
+    "storage_bucket": "project-b77f4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71266374607:android:2a735c0cf0260e8cbcf8ba",
+        "android_client_info": {
+          "package_name": "com.rahul.donate_a_food"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClYFfpmtbj9fOfo1YSV1slxZABJLgbxlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71266374607:android:8ea36b52a36233fcbcf8ba",
+        "android_client_info": {
+          "package_name": "com.rahul.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClYFfpmtbj9fOfo1YSV1slxZABJLgbxlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
