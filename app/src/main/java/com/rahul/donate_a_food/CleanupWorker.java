@@ -41,12 +41,12 @@ public class CleanupWorker extends Worker {
                             ProductFragment.Product product = productSnapshot.getValue(ProductFragment.Product.class);
                             if (product != null && product.getImageUrl() != null) {
                                 String productId = productSnapshot.getKey();
-                                String imageUrl = product.getImageUrl();
+//                                String imageUrl = product.getImageUrl();
 
                                 // Delete the image from Firebase Storage
-                                StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-                                imageRef.delete().addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
+//                                StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+//                                imageRef.delete().addOnCompleteListener(task -> {
+//                                    if (task.isSuccessful()) {
                                         // Delete the product from the database
                                         if (productId != null) {
                                             databaseReference.child(productId).removeValue()
@@ -56,10 +56,10 @@ public class CleanupWorker extends Worker {
                                                         }
                                                     });
                                         }
-                                    } else {
-                                        Log.e("CleanupWorker", "Failed to delete image: " + imageUrl);
-                                    }
-                                });
+//                                    } else {
+//                                        Log.e("CleanupWorker", "Failed to delete image: " + imageUrl);
+//                                    }
+//                                });
                             }
                         }
                     }

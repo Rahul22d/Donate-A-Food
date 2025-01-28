@@ -1,117 +1,3 @@
-//package com.rahul.donate_a_food.Fragments;
-//
-//import android.app.Activity;
-//import android.content.Context;
-//import android.content.Intent;
-//import android.net.Uri;
-//import android.os.Bundle;
-//
-//import androidx.core.content.FileProvider;
-//import androidx.fragment.app.Fragment;
-//
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//import android.widget.Toast;
-//
-//import com.google.android.gms.location.FusedLocationProviderClient;
-//import com.google.android.gms.location.LocationServices;
-//import com.google.android.material.appbar.MaterialToolbar;
-//import com.google.firebase.Timestamp;
-//import com.google.firebase.auth.FirebaseAuth;
-//import com.google.firebase.firestore.FirebaseFirestore;
-//import com.google.firebase.storage.FirebaseStorage;
-//import com.google.firebase.storage.StorageReference;
-//import com.rahul.donate_a_food.MainActivity;
-//import com.rahul.donate_a_food.R;
-//import com.rahul.donate_a_food.databinding.FragmentProductBinding;
-//
-//import java.io.File;
-//import java.io.IOException;
-//import java.util.HashMap;
-//import java.util.Map;
-//import java.util.UUID;
-////import com.firebase.geofire.GeoHash;
-//
-//public class ProductFragment extends Fragment {
-//    FragmentProductBinding binding;
-//    private Uri foodImageUri;
-//    private double latitude, longitude;
-//
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-//                             Bundle savedInstanceState) {
-//        // Inflate the layout for this fragment
-//        binding = FragmentProductBinding.inflate(inflater, container, false);
-//
-////
-//        if(getActivity() instanceof MainActivity){
-//            ((MainActivity) getActivity()).hideBottomAppBar();
-//            ((MainActivity) getActivity()).hideLocation();
-//            latitude = ((MainActivity) getActivity()).getLat();
-//            longitude = ((MainActivity) getActivity()).getLon();
-//
-//        }
-//        binding.foodUploadBtn.setOnClickListener(V -> uploadFoodDetails());
-//
-//        return binding.getRoot();
-//    }
-//    // for image
-//
-//
-//    // For upload food
-//    private void uploadFoodDetails() {
-//        if (foodImageUri == null || binding.foodName.getText().toString().isEmpty()) {
-//            Toast.makeText(getActivity(), "Please provide all details", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-////
-//
-//
-//        // Generate geohash (using a geohashing library)
-////        String geohash = GeoHash.encodeHash(latitude, longitude);
-//
-//        // Upload image to Firebase Storage
-//        FirebaseStorage storage = FirebaseStorage.getInstance();
-//        StorageReference storageRef = storage.getReference().child("food_images/" + UUID.randomUUID().toString());
-//        storageRef.putFile(foodImageUri)
-//                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-//                    String foodImageUrl = uri.toString();
-//
-//                    // Save food details in Firestore
-//                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-//                    Map<String, Object> foodData = new HashMap<>();
-//                    foodData.put("foodName", binding.foodName.getText().toString());
-//                    foodData.put("foodDescription", binding.foodDescription.getText().toString());
-//                    foodData.put("foodImageUrl", foodImageUrl);
-//                    //foodData.put("geohash", geohash); // Store geohash
-////                    foodData.put("latitude", latitude);
-////                    foodData.put("longitude", longitude);
-//                    foodData.put("quantity", Integer.parseInt(binding.foodQuantity.getText().toString()));
-//                    foodData.put("timestamp", Timestamp.now());
-//
-//                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//                    db.collection("users").document(userId).collection("user_foods").add(foodData)
-//                            .addOnSuccessListener(documentReference -> {
-//                                Toast.makeText(getActivity(), "Food uploaded successfully!", Toast.LENGTH_SHORT).show();
-//                                binding.foodName.setText("");
-//                                binding.foodDescription.setText("");
-//                            })
-//                            .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to upload food", Toast.LENGTH_SHORT).show());
-//                }));
-//    }
-//
-//
-//    @Override
-//    public void onDestroyView() {
-//        super.onDestroyView();
-//        // Show the toolbar again when the fragment is destroyed
-//        if (getActivity() instanceof MainActivity) {
-//            ((MainActivity) getActivity()).showBottomAppBar();
-//        }
-//    }
-//}
-
 package com.rahul.donate_a_food.Fragments;
 
 import android.app.Activity;
@@ -154,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.PrimitiveIterator;
 import java.util.UUID;
 
 public class ProductFragment extends Fragment {
@@ -161,6 +48,8 @@ public class ProductFragment extends Fragment {
     private Uri foodImageUri = null;
     private double latitude, longitude;
     private DatabaseReference databaseReference;
+    private DatabaseReference userdatabaseReference;
+    private DatabaseReference mDatabase;
     private StorageReference storageReference;
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
@@ -194,9 +83,11 @@ public class ProductFragment extends Fragment {
             latitude = ((MainActivity) getActivity()).getLat();
             longitude = ((MainActivity) getActivity()).getLon();
         }
-        binding.foodName.setText(latitude +""+ longitude);
         databaseReference = FirebaseDatabase.getInstance().getReference("products");
         storageReference = FirebaseStorage.getInstance().getReference("product_images");
+        userdatabaseReference = FirebaseDatabase.getInstance().getReference("users");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
 
         binding.takeImageButton.setOnClickListener(v -> showImageSourceDialog());
         binding.foodUploadBtn.setOnClickListener(v -> {
@@ -205,6 +96,7 @@ public class ProductFragment extends Fragment {
             String foodDescription = binding.foodDescription.getText().toString().trim();
             int foodQuantity = Integer.parseInt(binding.foodQuantity.getText().toString());
             String number = "9998428534";
+
 
 
             if(TextUtils.isEmpty(foodName) || TextUtils.isEmpty(number) || foodQuantity == 0){
@@ -332,7 +224,11 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
 
     Product product = new Product(foodName, contactNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis);
     String productId = databaseReference.push().getKey();
-    if (productId != null) {
+    // this line of add on 28 jan
+    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    String userId = mAuth.getCurrentUser().getUid();
+//    String userUpload = userdatabaseReference.child(userId).child("uploadHistory").push().getKey();
+    if (productId != null ) {
         databaseReference.child(productId).setValue(product).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
@@ -340,7 +236,19 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
                 Toast.makeText(requireContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
             }
         });
+        // this line add on 28 jan
+        userdatabaseReference.child(userId).child("uploadHistory").child(productId).setValue(product).addOnCompleteListener(task ->{
+                    if(task.isSuccessful()){
+                        Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(requireContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
+
+//    if(userUpload != null){
+//        userdatabaseReference.child(userId).child("uploadHistory").child(userUpload).setValue(product);
+//    }
 }
 
 
@@ -360,6 +268,31 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
             ((MainActivity) getActivity()).showBottomAppBar();
         }
     }
+    // Method to get user phone number from Firebase Realtime Database
+//    private String getUserPhoneNumber(String userId) {
+//        // Reference to the user's data in the "users" node
+//        mDatabase.child("users").child(userId).child("number").get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        // Retrieve the phone number
+//                        String phoneNumber = task.getResult().getValue(String.class);
+//
+//                        if (phoneNumber != null) {
+//                            // Phone number retrieved successfully
+//                            return phoneNumber;
+//                        } else {
+//                            // No phone number found for the user
+////
+//                            return null;
+//                        }
+//                    } else {
+//                        // Handle failure in retrieving data
+////                        Toast.makeText(SignUpActivity.this, "Failed to get phone number", Toast.LENGTH_SHORT).show();
+//                        getUserPhoneNumber(userId);
+//                    }
+//                });
+//    }
+
 
     // Product class to represent the product data
     public static class Product {
