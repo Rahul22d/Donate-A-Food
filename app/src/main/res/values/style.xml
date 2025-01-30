@@ -8,4 +8,9 @@
         <item name="colorSecondary">@color/orange</item>
         <item name="colorOnSecondary">@color/white</item>
     </style>
+
+    <!-- for image -->
+    <style name="RoundedImageView">
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>

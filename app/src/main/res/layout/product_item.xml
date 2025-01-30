@@ -1,32 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:orientation="horizontal"-->
+<!--    android:padding="16dp"-->
+<!--    android:background="@drawable/item_product_background"-->
+<!--    android:clickable="true"-->
+<!--    android:focusable="true">-->
+
+<!--    &lt;!&ndash; Product Image with Rounded Corners &ndash;&gt;-->
+<!--    <com.google.android.material.imageview.ShapeableImageView-->
+<!--        android:id="@+id/productImageView"-->
+<!--        android:layout_width="90dp"-->
+<!--        android:layout_height="90dp"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:scaleType="centerCrop"-->
+<!--        android:contentDescription="product_image"-->
+<!--        app:shapeAppearanceOverlay="@style/RoundedImageView" />-->
+
+<!--    &lt;!&ndash; Product Details &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:orientation="vertical">-->
+
+<!--        &lt;!&ndash; Product Name &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:id="@+id/fullNameTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Food Name"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textStyle="bold" />-->
+
+<!--        &lt;!&ndash; Product Quantity &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:id="@+id/foodQuantityTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Quantity: 0"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textColor="@android:color/black" />-->
+
+<!--        &lt;!&ndash; Product Distance &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:id="@+id/distanceTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Distance: 0 km"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            android:textColor="@android:color/black"-->
+<!--            android:textSize="16sp" />-->
+
+<!--    </LinearLayout>-->
+
+<!--</LinearLayout>-->
+
+<!-- this layout hide on 29 jan -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:background="@drawable/item_product_background">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/productImageView"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="8dp"
         android:contentDescription="Product Image"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/RoundedImageView"
         app:srcCompat="@drawable/ic_launcher_foreground" />
 
     <TextView
         android:id="@+id/fullNameTextView"
-        android:layout_width="0dp"
-        android:layout_height="29dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="24dp"
-
+        android:layout_width="190dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="4dp"
         android:text="Product Name"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:textSize="15sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/productImageView"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -42,7 +104,7 @@
         app:layout_constraintTop_toBottomOf="@+id/fullNameTextView" />
 
     <TextView
-        android:id="@+id/locationTextView"
+        android:id="@+id/distanceTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -52,46 +114,18 @@
         app:layout_constraintStart_toStartOf="@+id/foodQuantityTextView"
         app:layout_constraintTop_toBottomOf="@+id/foodQuantityTextView" />
 
-    <TextView
-        android:id="@+id/contactTextView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Contact"
-        app:layout_constraintEnd_toEndOf="@+id/locationTextView"
-        app:layout_constraintHorizontal_bias="0.118"
-        app:layout_constraintStart_toStartOf="@+id/locationTextView"
-        app:layout_constraintTop_toBottomOf="@+id/locationTextView" />
+    <ImageView
+        android:id="@+id/foodType"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/fullNameTextView"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/veg" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
-<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="vertical"-->
-<!--        android:padding="16dp">-->
-
-<!--        <ImageView-->
-<!--            android:id="@+id/productImageView"-->
-<!--            android:layout_width="100dp"-->
-<!--            android:layout_height="100dp"-->
-<!--            android:src="@drawable/ic_launcher_foreground"-->
-<!--            android:contentDescription="Product Image"/>-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/fullNameTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Product Name"/>-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/foodQuantityTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Food Quantity"/>-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/locationTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Location"/>-->
-<!--    </LinearLayout>-->

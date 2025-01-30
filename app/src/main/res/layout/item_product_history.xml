@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/history_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/item_product_background">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/foodImageH"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.648"
+        tools:srcCompat="@tools:sample/avatars"
+        app:shapeAppearanceOverlay="@style/RoundedImageView"/>
+
+    <TextView
+        android:id="@+id/foodNameH"
+        android:layout_width="190dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="20dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="food name"
+        app:layout_constraintEnd_toStartOf="@+id/foodImageH"
+        app:layout_constraintHorizontal_bias="0.446"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/foodQuantityH"
+        android:layout_width="186dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="@+id/foodNameH"
+        app:layout_constraintStart_toStartOf="@+id/foodNameH"
+        app:layout_constraintTop_toBottomOf="@+id/foodNameH" />
+
+    <TextView
+        android:id="@+id/foodDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="13dp"
+        android:text="TextView"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/foodQuantityH"
+        app:layout_constraintStart_toStartOf="@+id/foodQuantityH"
+        app:layout_constraintTop_toBottomOf="@+id/foodQuantityH" />
+</androidx.constraintlayout.widget.ConstraintLayout>

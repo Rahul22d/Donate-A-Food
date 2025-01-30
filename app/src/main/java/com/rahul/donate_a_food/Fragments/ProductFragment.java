@@ -1,5 +1,6 @@
 package com.rahul.donate_a_food.Fragments;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,7 +20,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.firebase.Timestamp;
@@ -38,7 +42,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.UUID;
@@ -51,6 +58,7 @@ public class ProductFragment extends Fragment {
     private DatabaseReference userdatabaseReference;
     private DatabaseReference mDatabase;
     private StorageReference storageReference;
+    private Spinner spinner;
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -87,7 +95,13 @@ public class ProductFragment extends Fragment {
         storageReference = FirebaseStorage.getInstance().getReference("product_images");
         userdatabaseReference = FirebaseDatabase.getInstance().getReference("users");
         mDatabase = FirebaseDatabase.getInstance().getReference();
-
+        // for spinner food type select
+        spinner = binding.foodCategory;
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity()
+                ,R.array.food_type
+                , android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
 
         binding.takeImageButton.setOnClickListener(v -> showImageSourceDialog());
         binding.foodUploadBtn.setOnClickListener(v -> {
@@ -95,16 +109,17 @@ public class ProductFragment extends Fragment {
             String foodName = binding.foodName.getText().toString().trim();
             String foodDescription = binding.foodDescription.getText().toString().trim();
             int foodQuantity = Integer.parseInt(binding.foodQuantity.getText().toString());
-            String number = "9998428534";
+
+            String foodType = spinner.getSelectedItem().toString();
 
 
 
-            if(TextUtils.isEmpty(foodName) || TextUtils.isEmpty(number) || foodQuantity == 0){
+            if(TextUtils.isEmpty(foodName)  || foodQuantity == 0){
                 Toast.makeText(getActivity(), "Please provide all details", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (foodImageUri != null){
-                uploadImageToFirebase(foodImageUri, foodName, number, foodDescription, foodQuantity, latitude, longitude);
+                uploadImageToFirebase(foodImageUri, foodName,  foodDescription, foodQuantity, latitude, longitude, foodType);
 //                resetFields();
             } else {
 //                saveProductDataToDatabase(foodName, number, foodDescription, foodQuantity, null, latitude, longitude);
@@ -168,8 +183,8 @@ public class ProductFragment extends Fragment {
 
 
     //  Method to upload the image to Firebase Storage
-    private void uploadImageToFirebase(Uri imageUri, String foodName, String contactNumber, String foodDescription,
-                                       int foodQuantity, double latitude, double longitude) {
+    private void uploadImageToFirebase(Uri imageUri, String foodName, String foodDescription,
+                                       int foodQuantity, double latitude, double longitude, String foodType) {
         Bitmap bitmap = null;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -187,7 +202,7 @@ public class ProductFragment extends Fragment {
                     if (task.isSuccessful()) {
                         imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                             String imageUrl = uri.toString();
-                            saveProductDataToDatabase(foodName, contactNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude);
+                            saveProductDataToDatabase(foodName,  foodDescription, foodQuantity, imageUrl, latitude, longitude, foodType);
 //                            Toast.makeText(requireContext(), "Upload successful", Toast.LENGTH_SHORT).show();
                             resetFields();
                         });
@@ -202,54 +217,50 @@ public class ProductFragment extends Fragment {
         }
     }
 
-//    private void saveProductDataToDatabase(String foodName, String contactNumber, String foodDescription,
-//                                           int foodQuantity, String imageUrl, double latitude, double longitude) {
-//        Product product = new Product(foodName, contactNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude);
-//        String productId = databaseReference.push().getKey();
-//        if (productId != null) {
-//            databaseReference.child(productId).setValue(product).addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    resetFields();
-//                    Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(requireContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
-//                }
-//            });
-//        }
-//    }
-private void saveProductDataToDatabase(String foodName, String contactNumber, String foodDescription,
-                                       int foodQuantity, String imageUrl, double latitude, double longitude) {
-    long currentTimeMillis = System.currentTimeMillis(); // Current time
-    long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
+    private void saveProductDataToDatabase(String foodName,  String foodDescription,
+                                           int foodQuantity, String imageUrl, double latitude, double longitude, String foodType) {
+        long currentTimeMillis = System.currentTimeMillis(); // Current time
+        long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
 
-    Product product = new Product(foodName, contactNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis);
-    String productId = databaseReference.push().getKey();
-    // this line of add on 28 jan
-    FirebaseAuth mAuth = FirebaseAuth.getInstance();
-    String userId = mAuth.getCurrentUser().getUid();
-//    String userUpload = userdatabaseReference.child(userId).child("uploadHistory").push().getKey();
-    if (productId != null ) {
-        databaseReference.child(productId).setValue(product).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        String userId = mAuth.getCurrentUser().getUid();
+
+        // Fetch donor details from Firebase Database
+        userdatabaseReference.child(userId).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                String donorName = task.getResult().child("name").getValue(String.class);
+                String donorNumber = task.getResult().child("number").getValue(String.class);
+
+                if (donorName == null || donorNumber == null) {
+                    Toast.makeText(getActivity(), "Failed to fetch donor details", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Create Product object with new donor details
+                Product product = new Product(foodName,donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName);
+
+                // Save product to Firebase
+                String productId = databaseReference.push().getKey();
+                if (productId != null) {
+                    databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            Toast.makeText(getActivity(), "Product added successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getActivity(), "Failed to add product", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    // Save to user's upload history
+                    HistoryProduct historyProduct = new HistoryProduct(foodName, foodQuantity, imageUrl, new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()));
+                    userdatabaseReference.child(userId).child("uploadHistory").child(productId).setValue(historyProduct);
+                }
             } else {
-                Toast.makeText(requireContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Failed to retrieve donor details", Toast.LENGTH_SHORT).show();
             }
         });
-        // this line add on 28 jan
-        userdatabaseReference.child(userId).child("uploadHistory").child(productId).setValue(product).addOnCompleteListener(task ->{
-                    if(task.isSuccessful()){
-                        Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(requireContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
-//    if(userUpload != null){
-//        userdatabaseReference.child(userId).child("uploadHistory").child(userUpload).setValue(product);
-//    }
-}
+
 
 
 
@@ -268,31 +279,6 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
             ((MainActivity) getActivity()).showBottomAppBar();
         }
     }
-    // Method to get user phone number from Firebase Realtime Database
-//    private String getUserPhoneNumber(String userId) {
-//        // Reference to the user's data in the "users" node
-//        mDatabase.child("users").child(userId).child("number").get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        // Retrieve the phone number
-//                        String phoneNumber = task.getResult().getValue(String.class);
-//
-//                        if (phoneNumber != null) {
-//                            // Phone number retrieved successfully
-//                            return phoneNumber;
-//                        } else {
-//                            // No phone number found for the user
-////
-//                            return null;
-//                        }
-//                    } else {
-//                        // Handle failure in retrieving data
-////                        Toast.makeText(SignUpActivity.this, "Failed to get phone number", Toast.LENGTH_SHORT).show();
-//                        getUserPhoneNumber(userId);
-//                    }
-//                });
-//    }
-
 
     // Product class to represent the product data
     public static class Product {
@@ -304,13 +290,15 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
         private double latitude;
         private double longitude;
         private long expiryTimestamp;
+        private String foodType;
+        private String userName;
 
         // No-argument constructor required for Firebase
         public Product() {
         }
 
         Product(String foodName, String contactNumber, String foodDescription,/*String location,*/ int foodQuantity
-                , String imageUrl, double latitude, double longitude, long expiryTimestamp) {
+                , String imageUrl, double latitude, double longitude, long expiryTimestamp, String foodType, String userName) {
             this.foodName = foodName;
             this.contactNumber = contactNumber;
 //            this.location = location;
@@ -320,6 +308,8 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
             this.latitude = latitude;
             this.longitude = longitude;
             this.expiryTimestamp = expiryTimestamp;
+            this.foodType = foodType;
+            this.userName = userName;
         }
         // Getters and setters for all fields
         public String getFoodName() {
@@ -384,5 +374,38 @@ private void saveProductDataToDatabase(String foodName, String contactNumber, St
         public void setExpiryTimestamp(long expiryTimestamp) {
             this.expiryTimestamp = expiryTimestamp;
         }
+        public void setFoodType(){this.foodType = foodType;}
+        public String getFoodType() {return foodType;}
+
+        public void setUserName() {this.userName = userName;}
+        public String getUserName() {return userName;}
+    }
+    // for track user history
+    class HistoryProduct{
+        private String foodName;
+        private int foodQuantity;
+        private String imageUrl;
+        private String date;
+
+        public HistoryProduct(String foodName, int foodQuantity, String imageUrl, String date) {
+            this.foodName = foodName;
+            this.foodQuantity = foodQuantity;
+            this.imageUrl = imageUrl;
+            this.date = date;
+        }
+        public String getFoodName() {
+            return foodName;
+        }
+        public int getFoodQuantity() {
+            return foodQuantity;
+        }
+
+        public String getImageUrl() {
+            return imageUrl;
+        }
+        public String getDate() {
+            return date;
+        }
+
     }
 }

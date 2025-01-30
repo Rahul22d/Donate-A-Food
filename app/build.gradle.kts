@@ -76,5 +76,5 @@ dependencies {
 //    implementation (libs.geofire.android.common.v310)
     implementation ("androidx.work:work-runtime:2.10.0")
     implementation (libs.guava)
-
+    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
