@@ -8,7 +8,7 @@ public class LocationViewModel extends ViewModel {
     private final MutableLiveData<Double> latitude = new MutableLiveData<>();
     private final MutableLiveData<Double> longitude = new MutableLiveData<>();
 
-    public void setLocation(double lat, double lon) {
+    public void setLocationCoor(double lat, double lon) {
         latitude.setValue(lat);
         longitude.setValue(lon);
     }
@@ -19,5 +19,15 @@ public class LocationViewModel extends ViewModel {
 
     public LiveData<Double> getLongitude() {
         return longitude;
+    }
+
+    private final MutableLiveData<Double[]> location = new MutableLiveData<>();
+
+    public LiveData<Double[]> getLocation() {
+        return location;
+    }
+
+    public void setLocation(double lat, double lng) {
+        location.setValue(new Double[]{lat, lng});
     }
 }

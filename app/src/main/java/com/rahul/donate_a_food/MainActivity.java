@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -32,13 +35,28 @@ import com.google.android.gms.location.*;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
+
+import org.osmdroid.util.GeoPoint;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements LocationPass {
     private ActivityMainBinding binding;
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
     private FirebaseAuth mAuth;
+    private DatabaseReference db;
     private NavigationView navigationView;
     private String username;
     private FusedLocationProviderClient fusedLocationClient;
@@ -48,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
     private static final int GALLERY_REQUEST = 100;
     private Uri foodImage;
     private LocationCallback locationCallback;
+    private Double currentLatitude, currentLongitude;
+
+    private LocationViewModel locationViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
         drawer = binding.drawerLayout;
         navigationView = binding.navigationView;
+        db = FirebaseDatabase.getInstance().getReference("users");
         mAuth = FirebaseAuth.getInstance();
 
         Intent intent = getIntent();
@@ -78,6 +100,31 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
             navigationView.getMenu().findItem(R.id.action_logout).setVisible(true);
             navigationView.getMenu().findItem(R.id.action_logIn).setVisible(false);
         }
+
+//        SharedPreferences sharedPreferences1 = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
+//        String latitudeString = sharedPreferences1.getString("latitude", null);
+//        String longitudeString = sharedPreferences1.getString("longitude", null);
+//        if (latitudeString != null && longitudeString != null) {
+//            currentLatitude = Double.parseDouble(latitudeString);
+//            currentLongitude = Double.parseDouble(longitudeString);
+//            setLocation(currentLatitude, currentLongitude); // for product fragment
+//            LocationViewModel locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class); // for home fragment
+//            locationViewModel.setLocation(currentLatitude, currentLongitude);
+//            saveLocationToFirestore(currentLatitude, currentLongitude);
+//        }
+        currentLatitude = intent.getDoubleExtra("latitude",0.0);
+        currentLongitude = intent.getDoubleExtra("longitude", 0.0);
+//        setLocation(currentLatitude, currentLongitude);
+        locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
+        locationViewModel.setLocation(currentLatitude, currentLongitude);
+        locationViewModel.getLocation().observe(this, location -> {
+           currentLatitude = location[0];
+           currentLongitude = location[1];
+           saveLocationToFirestore(currentLatitude, currentLongitude);
+           Toast.makeText(this, "Location: "+currentLatitude+" ,"+currentLongitude, Toast.LENGTH_SHORT).show();
+        });
+        getAddess();
+
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.action_home, R.id.action_history, R.id.action_help, R.id.action_feedback, R.id.action_share)
@@ -105,19 +152,45 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            getLastLocation();
-        }
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+//                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    LOCATION_PERMISSION_REQUEST_CODE);
+//        } else {
+//            getLastLocation();
+//        }
 
         if (!isConnected()) {
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
         }
     }
+    // get address
+    public void getAddess() {
+        Toast.makeText(this, "getAddess", Toast.LENGTH_SHORT).show();
+        if(currentLatitude != null && currentLongitude != null) {
+            getAddressFromCoordinates(currentLatitude, currentLongitude);
+        }
+    }
+
+    // for save location on data base
+    private void saveLocationToFirestore(double latitude, double longitude) {
+        String userId = mAuth.getUid();
+        Map<String, Object> map = new HashMap<>();
+        map.put("latitude", latitude);
+        map.put("longitude", longitude);
+        if(userId != null){
+                    db.child(userId) // Replace with actual user ID logic
+                    .updateChildren(map)
+                    .addOnSuccessListener(e ->  Log.e("SplashActivity", "save location: " ))
+                    .addOnFailureListener(e -> {
+                        Log.e("SplashActivity", "Failed to save location: " );
+
+                    });
+        }
+    }
+
+
 
     private void setupBottomAppBarNavigation(NavController navController) {
         BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
@@ -179,73 +252,108 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
     }
 
-    // 🔥 Improved GPS Location Fetching
-    public void getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-            return;
-        }
+    private void getAddressFromCoordinates(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
 
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        updateLocation(location);
-                    } else {
-                        requestLocationUpdates();
-                    }
-                });
-    }
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
 
-    private void requestLocationUpdates() {
-        LocationRequest locationRequest = new LocationRequest.Builder(10000)
-                .setMinUpdateIntervalMillis(30000) // update after 30 sec
-                .setGranularity(Granularity.GRANULARITY_FINE)
-                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .setMinUpdateDistanceMeters(5)
-                .build();
+                // Extract the full formatted address
+                String fullAddress = address.getAddressLine(0);  // Full address line
 
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult != null) {
-                    for (Location location : locationResult.getLocations()) {
-                        updateLocation(location);
-                    }
-                }
+                // Check if the full address contains a Plus Code (e.g., "UH3V+5FW")
+                if (fullAddress != null && !fullAddress.isEmpty()) {
+                    // Remove the Plus Code pattern at the beginning (e.g., "UH3V+5FW")
+                    fullAddress = fullAddress.replaceAll("^[A-Za-z0-9]+\\+[A-Za-z0-9]+,?", "").trim();  // Remove Plus Code
+                    setLocation(fullAddress);
+                    Log.d("MainActivity", "Address: "+fullAddress);
+                    // Set the cleaned-up address
+//                    binding.textView.setText(fullAddress);
+//                    if(getActivity() instanceof MainActivity){
+//                        ((MainActivity) getActivity()).setLocation(fullAddress);
+//                    }
+//                } else {
+//                    binding.textView.setText("Address not found");
+//                }
+//                } else {
+//                binding.textView.setText("Addrss not found");
+                }}
+            } catch(IOException e){
+                e.printStackTrace();
+                Toast.makeText(this, "Unable to get address", Toast.LENGTH_LONG).show();
             }
-        };
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
         }
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-    }
 
-    private void updateLocation(Location location) {
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-        // Store the location in SharedPreferences
-//        SharedPreferences sharedPreferences = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString("latitude", String.valueOf(latitude)); // Store as String
-//        editor.putString("longitude", String.valueOf(longitude)); // Store as String
-//        editor.apply(); // Apply the changes
-        // 🔥 Update ViewModel for Fragment communication
-        LocationViewModel locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
-        locationViewModel.setLocation(latitude, longitude);
-        Log.d("Location", "Updated Latitude: " + latitude + ", Longitude: " + longitude);
-        setLocation(latitude, longitude);
-    }
+
+//    // 🔥 Improved GPS Location Fetching
+//    public void getLastLocation() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+//                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    LOCATION_PERMISSION_REQUEST_CODE);
+//            return;
+//        }
+//
+//        fusedLocationClient.getLastLocation()
+//                .addOnSuccessListener(this, location -> {
+//                    if (location != null) {
+//                        updateLocation(location);
+//                    } else {
+//                        requestLocationUpdates();
+//                    }
+//                });
+//    }
+
+//    private void requestLocationUpdates() {
+//        LocationRequest locationRequest = new LocationRequest.Builder(10000)
+//                .setMinUpdateIntervalMillis(30000) // update after 30 sec
+//                .setGranularity(Granularity.GRANULARITY_FINE)
+//                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+//                .setMinUpdateDistanceMeters(5)
+//                .build();
+//
+//        locationCallback = new LocationCallback() {
+//            @Override
+//            public void onLocationResult(LocationResult locationResult) {
+//                if (locationResult != null) {
+//                    for (Location location : locationResult.getLocations()) {
+//                        updateLocation(location);
+//                    }
+//                }
+//            }
+//        };
+//
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            // TODO: Consider calling
+//            //    ActivityCompat#requestPermissions
+//            // here to request the missing permissions, and then overriding
+//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//            //                                          int[] grantResults)
+//            // to handle the case where the user grants the permission. See the documentation
+//            // for ActivityCompat#requestPermissions for more details.
+//            return;
+//        }
+//        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+//    }
+//
+//    private void updateLocation(Location location) {
+//        latitude = location.getLatitude();
+//        longitude = location.getLongitude();
+//        // Store the location in SharedPreferences
+////        SharedPreferences sharedPreferences = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
+////        SharedPreferences.Editor editor = sharedPreferences.edit();
+////        editor.putString("latitude", String.valueOf(latitude)); // Store as String
+////        editor.putString("longitude", String.valueOf(longitude)); // Store as String
+////        editor.apply(); // Apply the changes
+//        // 🔥 Update ViewModel for Fragment communication
+////        LocationViewModel locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
+////        locationViewModel.setLocation(latitude, longitude);
+//        Log.d("Location", "Updated Latitude: " + latitude + ", Longitude: " + longitude);
+////        setLocation(latitude, longitude);
+//    }
 
     private boolean isConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -297,11 +405,14 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 //        binding.bottomAppBar.setVisibility(View.VISIBLE);
         binding.bottomNavigationView.setVisibility(View.VISIBLE);
     }
+    public void setLocation(String location) {
+        binding.locationView.setText(location);
+    }
     @Override
     protected void onResume() {
         super.onResume(); // Sticky notes received from Android if
         showLocation();
-        requestLocationUpdates();
+//        requestLocationUpdates();
     }
 }
 

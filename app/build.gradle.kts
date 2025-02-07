@@ -77,4 +77,7 @@ dependencies {
     implementation ("androidx.work:work-runtime:2.10.0")
     implementation (libs.guava)
     implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation (libs.osmdroid.osmdroid.android.v6111)
+    implementation (libs.play.services.location.v2101)
+    implementation (libs.osmdroid.android.v6116)
 }

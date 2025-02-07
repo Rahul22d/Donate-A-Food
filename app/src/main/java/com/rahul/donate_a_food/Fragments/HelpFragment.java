@@ -32,7 +32,7 @@ public class HelpFragment extends Fragment {
 
         // Hide the toolbar when this fragment is shown
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).hideToolbar();
+//            ((MainActivity) getActivity()).hideToolbar();
         }
 
 //        MaterialToolbar toolbar = binding.findViewById(R.id.helpT);
@@ -50,7 +50,7 @@ public class HelpFragment extends Fragment {
         super.onDestroyView();
         // Show the toolbar again when the fragment is destroyed
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).showToolbar();
+//            ((MainActivity) getActivity()).showToolbar();
         }
     }
 

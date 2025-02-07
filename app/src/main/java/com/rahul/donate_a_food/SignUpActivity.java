@@ -1,6 +1,7 @@
 package com.rahul.donate_a_food;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Toast;
@@ -20,12 +21,21 @@ public class SignUpActivity extends AppCompatActivity {
     ActivitySignUpBinding binding;
     private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
+    private double currentLongitude, currentLatitude;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 //        setContentView(R.layout.activity_sign_up);
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
+
+        SharedPreferences sharedPreferences1 = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
+        String latitudeString = sharedPreferences1.getString("latitude", null);
+        String longitudeString = sharedPreferences1.getString("longitude", null);
+        if (latitudeString != null && longitudeString != null) {
+            currentLatitude = Double.parseDouble(latitudeString);
+            currentLongitude = Double.parseDouble(longitudeString);
+        }
 
         setContentView(binding.getRoot());
         mAuth = FirebaseAuth.getInstance();
@@ -85,7 +95,7 @@ public class SignUpActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         // User is signed up successfully, save user details to Firebase Realtime Database
                         String userId = mAuth.getCurrentUser().getUid();
-                        saveUserDetailsToDatabase(userId, name, username, email, phone);
+                        saveUserDetailsToDatabase(userId, name, username, email, phone, currentLatitude, currentLongitude);
 
                         // Display success message
                         Toast.makeText(SignUpActivity.this, "Sign Up Successful", Toast.LENGTH_SHORT).show();
@@ -103,9 +113,9 @@ public class SignUpActivity extends AppCompatActivity {
 
 
     // Method to save user details to Firebase Realtime Database
-    private void saveUserDetailsToDatabase(String userId, String name, String username, String email, String number) {
+    private void saveUserDetailsToDatabase(String userId, String name, String username, String email, String number, double latitude, double longitude) {
         // Create a User object with the provided details
-        User newUser = new User(name, username, email, number);
+        User newUser = new User(name, username, email, number, latitude, longitude);
 
         // Save the user data under the userId in the "users" node
         mDatabase.child(userId).setValue(newUser)

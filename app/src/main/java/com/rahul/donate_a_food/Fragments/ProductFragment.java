@@ -13,6 +13,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -34,6 +35,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.rahul.donate_a_food.LocationViewModel;
 import com.rahul.donate_a_food.MainActivity;
 import com.rahul.donate_a_food.R;
 import com.rahul.donate_a_food.databinding.FragmentProductBinding;
@@ -59,6 +61,7 @@ public class ProductFragment extends Fragment {
     private DatabaseReference mDatabase;
     private StorageReference storageReference;
     private Spinner spinner;
+    private LocationViewModel locationViewModel;
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -88,9 +91,15 @@ public class ProductFragment extends Fragment {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideBottomAppBar();
             ((MainActivity) getActivity()).hideLocation();
-            latitude = ((MainActivity) getActivity()).getLat();
-            longitude = ((MainActivity) getActivity()).getLon();
+//            latitude = ((MainActivity) getActivity()).getLat();
+//            longitude = ((MainActivity) getActivity()).getLon();
         }
+        // get location
+        locationViewModel = new ViewModelProvider(requireActivity()).get(LocationViewModel.class);
+        locationViewModel.getLocation().observe(getViewLifecycleOwner(), location -> {
+            latitude = location[0];
+            longitude = location[1];
+        });
         databaseReference = FirebaseDatabase.getInstance().getReference("products");
         storageReference = FirebaseStorage.getInstance().getReference("product_images");
         userdatabaseReference = FirebaseDatabase.getInstance().getReference("users");

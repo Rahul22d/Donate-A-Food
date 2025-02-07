@@ -117,8 +117,12 @@ public class HomeFragment extends Fragment {
 //        getLocationFromPreferences();
         // 🔥 Observe Location Changes
         locationViewModel = new ViewModelProvider(requireActivity()).get(LocationViewModel.class);
-        locationViewModel.getLatitude().observe(getViewLifecycleOwner(), lat -> currentLatitude = lat);
-        locationViewModel.getLongitude().observe(getViewLifecycleOwner(), lon -> currentLongitude = lon);
+//        locationViewModel.getLatitude().observe(getViewLifecycleOwner(), lat -> currentLatitude = lat);
+//        locationViewModel.getLongitude().observe(getViewLifecycleOwner(), lon -> currentLongitude = lon);
+        locationViewModel.getLocation().observe(getViewLifecycleOwner(), location -> {
+            currentLatitude = location[0];
+            currentLongitude = location[1];
+        });
 
         return root;
     }

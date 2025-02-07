@@ -23,7 +23,7 @@ public class FoodBookedFragment extends Fragment {
 
         // Hide the toolbar when this fragment is shown
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).hideLocation();
+//            ((MainActivity) getActivity()).hideLocation();
         }
 
         return binding.getRoot();
@@ -33,7 +33,7 @@ public class FoodBookedFragment extends Fragment {
         super.onDestroyView();
         // Show the toolbar again when the fragment is destroyed
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).showLocation();
+//            ((MainActivity) getActivity()).showLocation();
         }
 
         }

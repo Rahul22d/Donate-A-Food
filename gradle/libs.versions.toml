@@ -23,6 +23,9 @@ firebaseDatabase = "21.0.0"
 firebaseStorage = "21.0.1"
 firebaseAuth = "23.1.0"
 osmdroidAndroid = "6.1.9"
+osmdroidAndroidVersion = "6.1.16"
+osmdroidOsmdroidAndroidVersion = "6.1.11"
+playServicesLocationVersion = "21.0.1"
 playServicesMaps = "19.0.0"
 firebaseFirestore = "25.1.1"
 playServicesLocation = "21.3.0"
@@ -52,6 +55,9 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
+osmdroid-android-v6116 = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroidVersion" }
+osmdroid-osmdroid-android-v6111 = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidOsmdroidAndroidVersion" }
+play-services-location-v2101 = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocationVersion" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
