@@ -5,6 +5,7 @@ public class OrderBooked {
     private String donorName;
     private String foodName;
     private int foodQuantity;
+    private String location;
     private String imageUrl;
     private String number;
     private String receiverId;
@@ -14,11 +15,12 @@ public class OrderBooked {
         // Empty constructor required for Firebase
     }
 
-    public OrderBooked(String donorId, String donorName, String foodName, int foodQuantity, String imageUrl, String number, String receiverId, String status) {
+    public OrderBooked(String donorId, String donorName, String foodName, int foodQuantity, String location, String imageUrl, String number, String receiverId, String status) {
         this.donorId = donorId;
         this.donorName = donorName;
         this.foodName = foodName;
         this.foodQuantity = foodQuantity;
+        this.location = location;
         this.imageUrl = imageUrl;
         this.number = number;
         this.receiverId = receiverId;
@@ -33,4 +35,5 @@ public class OrderBooked {
     public String getNumber() { return number; }
     public String getReceiverId() { return receiverId; }
     public String getStatus() { return status; }
+    public String getLocation() {return location;}
 }

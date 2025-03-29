@@ -38,6 +38,12 @@
             android:layout_height="wrap_content"
             android:text="Quantity"
             android:textSize="16sp"/>
+        <TextView
+            android:id="@+id/location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textSize="16sp"/>
 
         <TextView
             android:id="@+id/number"

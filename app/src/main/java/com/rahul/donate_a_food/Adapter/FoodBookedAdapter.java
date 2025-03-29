@@ -42,6 +42,7 @@ public class FoodBookedAdapter extends RecyclerView.Adapter<FoodBookedAdapter.Vi
         holder.foodName.setText(order.getFoodName());
         holder.donorName.setText("Donor: " + order.getDonorName());
         holder.foodQuantity.setText("Quantity: " + order.getFoodQuantity());
+        holder.location.setText("Location: " + order.getLocation());
         holder.number.setText("Contact: " + order.getNumber());
         holder.status.setText("Status: " + order.getStatus());
 
@@ -56,7 +57,7 @@ public class FoodBookedAdapter extends RecyclerView.Adapter<FoodBookedAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView foodName, donorName, foodQuantity, number, status;
+        TextView foodName, donorName, foodQuantity, location, number, status;
         ImageView foodImage;
 
         public ViewHolder(@NonNull View itemView) {
@@ -64,6 +65,7 @@ public class FoodBookedAdapter extends RecyclerView.Adapter<FoodBookedAdapter.Vi
             foodName = itemView.findViewById(R.id.foodName);
             donorName = itemView.findViewById(R.id.donorName);
             foodQuantity = itemView.findViewById(R.id.foodQuantity);
+            location = itemView.findViewById(R.id.location);
             number = itemView.findViewById(R.id.number);
             status = itemView.findViewById(R.id.status);
             foodImage = itemView.findViewById(R.id.foodImage);
