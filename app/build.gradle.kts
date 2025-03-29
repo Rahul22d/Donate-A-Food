@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
-    implementation(libs.firebase.auth)
+//    implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.play.services.location)
     testImplementation(libs.junit)
@@ -58,7 +58,7 @@ dependencies {
 
     // add some
     implementation ("com.squareup.picasso:picasso:2.71828")
-    implementation (platform("com.google.firebase:firebase-bom:33.8.0"))
+    implementation (libs.firebase.bom)
     implementation("com.google.firebase:firebase-appcheck-safetynet:16.1.2")
     implementation ("com.google.firebase:firebase-appcheck")
     implementation ("com.android.support:multidex-instrumentation:1.0.3")
@@ -80,4 +80,26 @@ dependencies {
     implementation (libs.osmdroid.osmdroid.android.v6111)
     implementation (libs.play.services.location.v2101)
     implementation (libs.osmdroid.android.v6116)
+    // For FCM token
+    implementation (libs.firebase.messaging)
+
+    implementation (libs.play.services.maps.v1820)
+
+    implementation (libs.volley)
+//    implementation("com.google.firebase:firebase-analytics")
+//    implementation (libs.firebase.admin)
+
+    // Import the BoM for the Firebase platform
+    implementation(libs.firebase.bom.v33110)
+    // FirebaseUI for Firebase Auth
+    implementation (libs.firebase.auth.v2212)  // Latest Firebase Auth
+    implementation (libs.firebase.ui.auth.v802)     // FirebaseUI Auth
+
+//    implementation (libs.firebase.appcheck.playintegrity)
+//    implementation (libs.firebase.appcheck.playintegrity.v1701)
+
+
+
+
+
 }

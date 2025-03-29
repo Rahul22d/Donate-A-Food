@@ -1,7 +1,7 @@
 package com.rahul.donate_a_food.Fragments;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
@@ -21,17 +21,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.google.firebase.Timestamp;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -40,16 +40,19 @@ import com.rahul.donate_a_food.MainActivity;
 import com.rahul.donate_a_food.R;
 import com.rahul.donate_a_food.databinding.FragmentProductBinding;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.PrimitiveIterator;
+import java.util.Properties;
 import java.util.UUID;
 
 public class ProductFragment extends Fragment {
@@ -62,6 +65,7 @@ public class ProductFragment extends Fragment {
     private StorageReference storageReference;
     private Spinner spinner;
     private LocationViewModel locationViewModel;
+    private String fcmServerKey;
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -87,6 +91,8 @@ public class ProductFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = FragmentProductBinding.inflate(inflater, container, false);
+
+        fcmServerKey = getFCMServerKey(getActivity());
 
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideBottomAppBar();
@@ -226,15 +232,57 @@ public class ProductFragment extends Fragment {
         }
     }
 
-    private void saveProductDataToDatabase(String foodName,  String foodDescription,
+//    private void saveProductDataToDatabase(String foodName,  String foodDescription,
+//                                           int foodQuantity, String imageUrl, double latitude, double longitude, String foodType) {
+//        long currentTimeMillis = System.currentTimeMillis(); // Current time
+//        long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
+//
+//        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+//        String userId = mAuth.getCurrentUser().getUid();
+//
+//        // Fetch donor details from Firebase Database
+//        userdatabaseReference.child(userId).get().addOnCompleteListener(task -> {
+//            if (task.isSuccessful() && task.getResult().exists()) {
+//                String donorName = task.getResult().child("name").getValue(String.class);
+//                String donorNumber = task.getResult().child("number").getValue(String.class);
+//
+//                if (donorName == null || donorNumber == null) {
+//                    Toast.makeText(getActivity(), "Failed to fetch donor details", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//
+//                // Create Product object with new donor details
+//                Product product = new Product(foodName,donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName);
+//
+//                // Save product to Firebase
+//                String productId = databaseReference.push().getKey();
+//                if (productId != null) {
+//                    databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
+//                        if (task1.isSuccessful()) {
+//                            Toast.makeText(getActivity(), "Product added successfully", Toast.LENGTH_SHORT).show();
+//                        } else {
+//                            Toast.makeText(getActivity(), "Failed to add product", Toast.LENGTH_SHORT).show();
+//                        }
+//                    });
+//
+//                    // Save to user's upload history
+//                    HistoryProduct historyProduct = new HistoryProduct(foodName, foodQuantity, imageUrl, new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()));
+//                    userdatabaseReference.child(userId).child("uploadHistory").child(productId).setValue(historyProduct);
+//                }
+//            } else {
+//                Toast.makeText(getActivity(), "Failed to retrieve donor details", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+
+    private void saveProductDataToDatabase(String foodName, String foodDescription,
                                            int foodQuantity, String imageUrl, double latitude, double longitude, String foodType) {
-        long currentTimeMillis = System.currentTimeMillis(); // Current time
-        long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
+        long currentTimeMillis = System.currentTimeMillis();
+        long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000);
 
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         String userId = mAuth.getCurrentUser().getUid();
 
-        // Fetch donor details from Firebase Database
         userdatabaseReference.child(userId).get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult().exists()) {
                 String donorName = task.getResult().child("name").getValue(String.class);
@@ -245,15 +293,15 @@ public class ProductFragment extends Fragment {
                     return;
                 }
 
-                // Create Product object with new donor details
-                Product product = new Product(foodName,donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName);
-
-                // Save product to Firebase
                 String productId = databaseReference.push().getKey();
+                Product product = new Product(foodName, donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName, userId, productId);
+
+
                 if (productId != null) {
                     databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
                         if (task1.isSuccessful()) {
                             Toast.makeText(getActivity(), "Product added successfully", Toast.LENGTH_SHORT).show();
+//                            notifyNearbyUsers(foodName, productId, latitude, longitude);
                         } else {
                             Toast.makeText(getActivity(), "Failed to add product", Toast.LENGTH_SHORT).show();
                         }
@@ -269,6 +317,79 @@ public class ProductFragment extends Fragment {
         });
     }
 
+
+
+    private void sendFCMNotification(String token, String title, String message) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("to", token);
+
+            JSONObject notification = new JSONObject();
+            notification.put("title", title);
+            notification.put("body", message);
+
+            json.put("notification", notification);
+
+            // Send HTTP request to Firebase Cloud Messaging
+//            sendHttpRequestToFCM(json);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+//    public void sendFCMNotification(String userToken, String title, String message, String productId, Context context) {
+//        String fcmServerKey = getFCMServerKey(getActivity());  // Replace with your actual FCM server key
+//        String fcmUrl = "https://fcm.googleapis.com/fcm/send";
+//
+//        RequestQueue requestQueue = Volley.newRequestQueue(context);
+//
+//        try {
+//            JSONObject notification = new JSONObject();
+//            notification.put("title", title);
+//            notification.put("body", message);
+//
+//            JSONObject data = new JSONObject();
+//            data.put("productId", productId);
+//
+//            JSONObject requestBody = new JSONObject();
+//            requestBody.put("to", userToken);
+//            requestBody.put("notification", notification);
+//            requestBody.put("data", data);
+//
+//            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, fcmUrl, requestBody,
+//                    response -> Log.d("FCM", "Notification sent: " + response.toString()),
+//                    error -> Log.e("FCM", "Error sending notification", error)) {
+//                @Override
+//                public Map<String, String> getHeaders() {
+//                    Map<String, String> headers = new HashMap<>();
+//                    headers.put("Authorization", "key=" + fcmServerKey);
+//                    headers.put("Content-Type", "application/json");
+//                    return headers;
+//                }
+//            };
+//
+//            requestQueue.add(request);
+//        } catch (JSONException e) {
+//            Log.e("FCM", "JSON Exception: " + e.getMessage());
+//        }
+    }
+
+
+
+
+
+    // 📌 Calculate Distance Between Two Locations
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double earthRadius = 6371; // Earth's radius in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return earthRadius * c;
+    }
 
 
 
@@ -289,6 +410,19 @@ public class ProductFragment extends Fragment {
         }
     }
 
+    // FOR GET FCM API
+    private String getFCMServerKey(Context context) {
+        Properties properties = new Properties();
+        try {
+            InputStream inputStream = context.getAssets().open("local.properties");
+            properties.load(inputStream);
+        } catch (IOException e) {
+            Log.e("FCM", "Error loading FCM Server Key", e);
+        }
+        return properties.getProperty("FCM_SERVER_KEY", "");  // Default empty if not found
+    }
+
+
     // Product class to represent the product data
     public static class Product {
         private String foodName;
@@ -301,13 +435,15 @@ public class ProductFragment extends Fragment {
         private long expiryTimestamp;
         private String foodType;
         private String userName;
+        private String donorId;
+        private String productId;
 
         // No-argument constructor required for Firebase
         public Product() {
         }
 
         Product(String foodName, String contactNumber, String foodDescription,/*String location,*/ int foodQuantity
-                , String imageUrl, double latitude, double longitude, long expiryTimestamp, String foodType, String userName) {
+                , String imageUrl, double latitude, double longitude, long expiryTimestamp, String foodType, String userName, String donorId, String productId) {
             this.foodName = foodName;
             this.contactNumber = contactNumber;
 //            this.location = location;
@@ -319,6 +455,8 @@ public class ProductFragment extends Fragment {
             this.expiryTimestamp = expiryTimestamp;
             this.foodType = foodType;
             this.userName = userName;
+            this.donorId = donorId;
+            this.productId = productId;
         }
         // Getters and setters for all fields
         public String getFoodName() {
@@ -388,6 +526,10 @@ public class ProductFragment extends Fragment {
 
         public void setUserName() {this.userName = userName;}
         public String getUserName() {return userName;}
+        public void setDonorId() {this.donorId = donorId;}
+        public String getDonorId() {return donorId;}
+        public void setProductId(){this.productId = productId;}
+        public String getProductId() {return productId;}
     }
     // for track user history
     class HistoryProduct{
@@ -415,6 +557,7 @@ public class ProductFragment extends Fragment {
         public String getDate() {
             return date;
         }
+
 
     }
 }

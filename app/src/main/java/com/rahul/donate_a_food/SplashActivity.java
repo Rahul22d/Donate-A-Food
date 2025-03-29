@@ -157,12 +157,6 @@ public class SplashActivity extends AppCompatActivity  {
             public void onComplete(@NonNull Task<Location> task) {
                 if (task.isSuccessful() && task.getResult() != null) {
                     Location location = task.getResult();
-                    // 🔥 Update ViewModel for Fragment communication
-//                    SharedPreferences sharedPreferences = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
-//                    SharedPreferences.Editor editor = sharedPreferences.edit();
-//                    editor.putString("latitude", String.valueOf(location.getLatitude())); // Store as String
-//                    editor.putString("longitude", String.valueOf(location.getLongitude())); // Store as String
-//                    editor.apply(); // Apply the changes
 
                     new Handler().postDelayed(new Runnable() {
                         @Override
@@ -177,7 +171,7 @@ public class SplashActivity extends AppCompatActivity  {
 //                    saveLocationToFirestore(location.getLatitude(), location.getLongitude());
                 } else {
                     Log.e("SplashActivity", "Failed to get location.");
-
+                    getUserLocation();
                 }
             }
         });

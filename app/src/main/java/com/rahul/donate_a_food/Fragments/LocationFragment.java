@@ -288,6 +288,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -344,6 +346,16 @@ public class LocationFragment extends Fragment {
             userSelectedLocation = false; // Allow GPS updates again
             requestLocationUpdates();
         });
+        // map button
+        gpsButton.setVisibility(View.GONE);
+        binding.showMap.setOnClickListener(V -> {
+                    binding.showMap.setVisibility(View.GONE);
+                    gpsButton.setVisibility(View.VISIBLE);
+                    mapView.setVisibility(View.VISIBLE);
+                }
+        );
+
+        // Initialize LocationViewModel
         locationViewModel = new ViewModelProvider(requireActivity()).get(LocationViewModel.class);
         requestLocationUpdates();
         setupMapGestureListener(); // Enable long-press location selection
