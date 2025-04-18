@@ -26,7 +26,7 @@
     <fragment
         android:id="@+id/action_feedback"
         android:name="com.rahul.donate_a_food.Fragments.FeedBackFragment"
-        android:label="@string/feedback"
+        android:label="@string/order"
         tools:layout="@layout/fragment_feed_back" />
 
     <fragment

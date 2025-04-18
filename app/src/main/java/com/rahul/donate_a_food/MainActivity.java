@@ -7,15 +7,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +23,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -35,23 +35,23 @@ import com.google.android.gms.location.*;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
-
-import org.osmdroid.util.GeoPoint;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements LocationPass {
+    private static final int NOTIFICATION_PERMISSION_CODE = 1;
     private ActivityMainBinding binding;
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
@@ -75,11 +75,23 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{"android.permission.RECEIVE_SMS", "android.permission.READ_SMS"}, 101);
+        }
+
+
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
         setSupportActionBar(binding.toolbar);
 
+        // load profile image
+        loadProfileImage();
         drawer = binding.drawerLayout;
         navigationView = binding.navigationView;
         db = FirebaseDatabase.getInstance().getReference("users");
@@ -99,19 +111,26 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
             useremail.setText(username);
             navigationView.getMenu().findItem(R.id.action_logout).setVisible(true);
             navigationView.getMenu().findItem(R.id.action_logIn).setVisible(false);
+            // for notification
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.d("FCMService", "Fetching FCM token failed", task.getException());
+                            return;
+                        }
+
+                        // Get token
+                        String token = task.getResult();
+                        Log.d("FCMService", "FCM Token: " + token);
+
+                        // Save token to Firestore
+//                        MyFirebaseService myFirebaseService = new MyFirebaseService();
+//                        myFirebaseService.saveTokenToFirestore(token);
+                    });
+
         }
 
-//        SharedPreferences sharedPreferences1 = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
-//        String latitudeString = sharedPreferences1.getString("latitude", null);
-//        String longitudeString = sharedPreferences1.getString("longitude", null);
-//        if (latitudeString != null && longitudeString != null) {
-//            currentLatitude = Double.parseDouble(latitudeString);
-//            currentLongitude = Double.parseDouble(longitudeString);
-//            setLocation(currentLatitude, currentLongitude); // for product fragment
-//            LocationViewModel locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class); // for home fragment
-//            locationViewModel.setLocation(currentLatitude, currentLongitude);
-//            saveLocationToFirestore(currentLatitude, currentLongitude);
-//        }
+
         currentLatitude = intent.getDoubleExtra("latitude",0.0);
         currentLongitude = intent.getDoubleExtra("longitude", 0.0);
 //        setLocation(currentLatitude, currentLongitude);
@@ -152,19 +171,13 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-//                    LOCATION_PERMISSION_REQUEST_CODE);
-//        } else {
-//            getLastLocation();
-//        }
 
         if (!isConnected()) {
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
         }
     }
+
+
     // get address
     public void getAddess() {
         Toast.makeText(this, "getAddess", Toast.LENGTH_SHORT).show();
@@ -269,91 +282,52 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
                     fullAddress = fullAddress.replaceAll("^[A-Za-z0-9]+\\+[A-Za-z0-9]+,?", "").trim();  // Remove Plus Code
                     setLocation(fullAddress);
                     Log.d("MainActivity", "Address: "+fullAddress);
-                    // Set the cleaned-up address
-//                    binding.textView.setText(fullAddress);
-//                    if(getActivity() instanceof MainActivity){
-//                        ((MainActivity) getActivity()).setLocation(fullAddress);
-//                    }
-//                } else {
-//                    binding.textView.setText("Address not found");
-//                }
-//                } else {
-//                binding.textView.setText("Addrss not found");
-                }}
+                }
+            }
             } catch(IOException e){
                 e.printStackTrace();
                 Toast.makeText(this, "Unable to get address", Toast.LENGTH_LONG).show();
             }
         }
 
+        // for change nav image
+        private void loadProfileImage() {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) return;
 
-//    // 🔥 Improved GPS Location Fetching
-//    public void getLastLocation() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-//                    LOCATION_PERMISSION_REQUEST_CODE);
-//            return;
-//        }
-//
-//        fusedLocationClient.getLastLocation()
-//                .addOnSuccessListener(this, location -> {
-//                    if (location != null) {
-//                        updateLocation(location);
-//                    } else {
-//                        requestLocationUpdates();
-//                    }
-//                });
-//    }
+            String userId = user.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
 
-//    private void requestLocationUpdates() {
-//        LocationRequest locationRequest = new LocationRequest.Builder(10000)
-//                .setMinUpdateIntervalMillis(30000) // update after 30 sec
-//                .setGranularity(Granularity.GRANULARITY_FINE)
-//                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-//                .setMinUpdateDistanceMeters(5)
-//                .build();
-//
-//        locationCallback = new LocationCallback() {
-//            @Override
-//            public void onLocationResult(LocationResult locationResult) {
-//                if (locationResult != null) {
-//                    for (Location location : locationResult.getLocations()) {
-//                        updateLocation(location);
-//                    }
-//                }
-//            }
-//        };
-//
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return;
-//        }
-//        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-//    }
-//
-//    private void updateLocation(Location location) {
-//        latitude = location.getLatitude();
-//        longitude = location.getLongitude();
-//        // Store the location in SharedPreferences
-////        SharedPreferences sharedPreferences = getSharedPreferences("LocationPrefs", MODE_PRIVATE);
-////        SharedPreferences.Editor editor = sharedPreferences.edit();
-////        editor.putString("latitude", String.valueOf(latitude)); // Store as String
-////        editor.putString("longitude", String.valueOf(longitude)); // Store as String
-////        editor.apply(); // Apply the changes
-//        // 🔥 Update ViewModel for Fragment communication
-////        LocationViewModel locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
-////        locationViewModel.setLocation(latitude, longitude);
-//        Log.d("Location", "Updated Latitude: " + latitude + ", Longitude: " + longitude);
-////        setLocation(latitude, longitude);
-//    }
+            NavigationView navigationView = findViewById(R.id.navigationView);
+            View headerView = navigationView.getHeaderView(0);
+            ImageView profileImageView = headerView.findViewById(R.id.imageView);
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists() && snapshot.hasChild("imageUrl")) {
+                        String imageUrl = snapshot.child("imageUrl").getValue(String.class);
+
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            // Load image manually without Glide (using AsyncTask)
+                            new ImageLoaderTask(profileImageView).execute(imageUrl);
+                        } else {
+                            profileImageView.setImageResource(R.drawable.logo); // default image
+                        }
+                    } else {
+                        profileImageView.setImageResource(R.drawable.logo); // default image
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    profileImageView.setImageResource(R.drawable.logo); // default image on error
+                }
+            });
+        }
+
+
+
 
     private boolean isConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

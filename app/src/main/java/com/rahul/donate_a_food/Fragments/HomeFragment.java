@@ -1,5 +1,8 @@
 package com.rahul.donate_a_food.Fragments;
 
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
+
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,6 +24,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,12 +33,16 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.rahul.donate_a_food.CleanupWorker;
 import com.rahul.donate_a_food.LocationViewModel;
 import com.rahul.donate_a_food.MainActivity;
@@ -43,7 +52,9 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class HomeFragment extends Fragment {
@@ -58,7 +69,8 @@ public class HomeFragment extends Fragment {
     private Query databaseQuery;
     private double currentLatitude, currentLongitude;
 
-    private MainActivity mainActivity;
+    private FirebaseAuth mAuth;
+    DatabaseReference ordersRef;
 
     private static final int PAGE_SIZE = 10;
     private LocationViewModel locationViewModel;
@@ -69,6 +81,11 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        mAuth = FirebaseAuth.getInstance();
+        //String userId = mAuth.getCurrentUser().getUid();
+        ordersRef = FirebaseDatabase.getInstance().getReference("orders");
+
 
         // for clean up expire item
         scheduleCleanupWorker();
@@ -85,7 +102,10 @@ public class HomeFragment extends Fragment {
         databaseReference = FirebaseDatabase.getInstance().getReference("products");
         databaseQuery = databaseReference.limitToFirst(PAGE_SIZE);  // Fetch first PAGE_SIZE products
 
-
+        if(mAuth.getCurrentUser() != null) {
+            // for chack if any order place or not
+            checkForOrdersAndShowPopup(); // Check for orders when fragment loads
+        }
 
         // Load initial data
         retrieveData();
@@ -165,6 +185,8 @@ public class HomeFragment extends Fragment {
                     double longitude = snapshot.child("longitude").getValue(Double.class);
                     String foodType = snapshot.child("foodType").getValue(String.class);
                     String location = getAddressFromCoordinates(latitude, longitude);
+                    String donorId = snapshot.child("donorId").getValue(String.class);
+                    String productId = snapshot.child("productId").getValue(String.class);
 
 
                     // Calculate distance between current user and product location
@@ -176,9 +198,9 @@ public class HomeFragment extends Fragment {
                     if (distanceInKm <= 15) { // Only show products within 15 km radius
 
                         if (fullName != null && foodQuantity != null && foodDescription != null && location != null && imageUrl != null && contactNumber != null) {
-                            productList.add(new Product(fullName, ownerName, foodQuantity, foodDescription, location, distanceInKm, imageUrl, contactNumber, foodType));
+                            productList.add(new Product(fullName, ownerName, foodQuantity, foodDescription, location, distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
                         } else if (location == null) {
-                            productList.add(new Product(fullName,ownerName, foodQuantity, foodDescription, "Location not found", distanceInKm, imageUrl, contactNumber, foodType));
+                            productList.add(new Product(fullName,ownerName, foodQuantity, foodDescription, "Location not found", distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
                         }
                     } else {
                         Log.d("coordinate",currentLatitude + " lat, lon "+currentLongitude + " current lat "+latitude + " lon");
@@ -263,8 +285,10 @@ public class HomeFragment extends Fragment {
         private String location;
         public float distance;
         private String foodType;
+        private String donorId;
+        private String productId;
 
-        public Product(String fullName, String ownerName, int foodQuantity, String foodDescription, String location, float distance, String imageUrl, String contactNumber, String foodType) {
+        public Product(String fullName, String ownerName, int foodQuantity, String foodDescription, String location, float distance, String imageUrl, String contactNumber, String foodType, String donorId, String productId) {
             this.fullName = fullName;
             this.ownerName = ownerName;
             this.foodQuantity = foodQuantity;
@@ -274,6 +298,8 @@ public class HomeFragment extends Fragment {
             this.contactNumber = contactNumber;
             this.distance = distance;
             this.foodType = foodType;
+            this.donorId = donorId;
+            this.productId = productId;
 
         }
 
@@ -298,6 +324,11 @@ public class HomeFragment extends Fragment {
         }
         public String getOwnerName() {return ownerName;}
         public String getFoodType() {return foodType;}
+
+        public String getDonorId() {
+            return donorId;
+        }
+        public String getProductId() {return productId;}
     }
 
     // Adapter for RecyclerView
@@ -317,6 +348,11 @@ public class HomeFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
+            //this line add on 26 march-- start
+//            if (productList == null || productList.isEmpty() || position >= productList.size()) {
+//                return; // Prevent crash if list is empty or invalid index
+//            }
+            // end
             Product product = productList.get(position);
             holder.fullNameTextView.setText( product.getFullName());
             holder.foodQuantityTextView.setText("Quantity: " + product.getFoodQuantity());
@@ -339,6 +375,14 @@ public class HomeFragment extends Fragment {
 
             // Set item click listener to open dialog
             holder.itemView.setOnClickListener(v -> showProductDetailsDialog(product));
+
+            // this line add on 26 march --
+            // Prevent crash when clicking on an empty product list
+//            holder.itemView.setOnClickListener(v -> {
+//                if (productList != null && position < productList.size()) {
+//                    showProductDetailsDialog(productList.get(position)); // Safe access
+//                }
+//            });
         }
 
         @Override
@@ -371,10 +415,35 @@ public class HomeFragment extends Fragment {
     }
 
     // Show Product Details in a Dialog
+//    @SuppressLint("RestrictedApi")
     private void showProductDetailsDialog(Product product) {
         // Inflate the custom layout
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View customDialogView = inflater.inflate(R.layout.dialog_product_details, null);
+
+        // for value change
+        TextView tvValue = customDialogView.findViewById(R.id.tv_value);
+        Button btnIncrease = customDialogView.findViewById(R.id.btn_increase);
+        Button btnDecrease = customDialogView.findViewById(R.id.btn_decrease);
+
+        //int[] quantity = {1}; // Using an array to modify within lambda expressions
+        ArrayList<Integer> quantity = new ArrayList<>();
+        quantity.add(1);
+        tvValue.setText(String.valueOf(quantity.get(0)));
+
+        btnIncrease.setOnClickListener(v -> {
+            if(quantity.get(0) < product.getFoodQuantity()) {
+                quantity.set(0, quantity.get(0) + 1);
+                tvValue.setText(String.valueOf(quantity.get(0)));
+            }
+        });
+
+        btnDecrease.setOnClickListener(v -> {
+            if (quantity.get(0) > 1) {
+                quantity.set(0, quantity.get(0) - 1);
+                tvValue.setText(String.valueOf(quantity.get(0)));
+            }
+        });
 
         // Get references to the views
         TextView productNameTextView = customDialogView.findViewById(R.id.productName);
@@ -403,8 +472,52 @@ public class HomeFragment extends Fragment {
 
         // Get the "OK" button and set its listener
 
-        submit.setOnClickListener(v -> dialog.dismiss());
+//        submit.setOnClickListener(v -> dialog.dismiss());
+        submit.setOnClickListener(v -> {
+            // Dismiss the dialog
+            dialog.dismiss();
+
+            // Place the order
+            placeOrder(product, quantity);
+        });
     }
+
+    // Method to place an order and store it in Firebase Realtime Database
+    private void placeOrder(Product product, ArrayList quantity) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        DatabaseReference ordersRef = FirebaseDatabase.getInstance().getReference("Orders");
+
+        String currentUserId = auth.getCurrentUser().getUid();
+
+        // Generate a unique order ID using push()
+        String orderId = ordersRef.push().getKey();
+
+        if (orderId == null ) {
+            Toast.makeText(getActivity(), "Failed to place order!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> orderData = new HashMap<>();
+        orderData.put("donorId", product.getDonorId());
+        orderData.put("receiverId", currentUserId);
+        orderData.put("productId", product.getProductId());
+        orderData.put("productName", product.getFullName());
+        orderData.put("donorName", product.getOwnerName());
+        orderData.put("donorContactNumber", product.getContactNumber());
+        orderData.put("foodQuantity", quantity.get(0));
+        orderData.put("location", product.getLocation());
+        orderData.put("imageUrl", product.getImageUrl());
+        orderData.put("status", "Pending");
+
+//        orderData.put("timestamp", ServerValue.TIMESTAMP);
+
+        ordersRef.child(orderId).setValue(orderData)
+                .addOnSuccessListener(aVoid -> Toast.makeText(getActivity(), "Order Placed!", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(getActivity(), "Order Failed!", Toast.LENGTH_SHORT).show());
+    }
+
+
+
     private void scheduleCleanupWorker() {
         PeriodicWorkRequest cleanupWorkRequest =
                 new PeriodicWorkRequest.Builder(CleanupWorker.class, 1, TimeUnit.HOURS)
@@ -416,5 +529,47 @@ public class HomeFragment extends Fragment {
                 cleanupWorkRequest
         );
     }
+
+    // for oorder booking
+    private void checkForOrdersAndShowPopup() {
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("orders");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        databaseRef.orderByChild("donorId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {  // If an order exists for the user
+                    showOrderPopup();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("Firebase", "Error fetching data", databaseError.toException());
+            }
+        });
+    }
+
+    // Show Popup Dialog
+    private void showOrderPopup() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Order Found");
+        builder.setMessage("You have an active order. Click OK to proceed.");
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            Fragment newFragment = new FoodBookedFragment();
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.nav_host_fragment_content_main, newFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
 
 }

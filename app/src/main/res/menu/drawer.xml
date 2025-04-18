@@ -28,7 +28,7 @@
                 android:icon="@drawable/baseline_share_24" />
             <item
                 android:id="@+id/action_feedback"
-                android:title="@string/feedback"
+                android:title="@string/order"
                 android:icon="@drawable/baseline_feedback_24" />
 
         </menu>

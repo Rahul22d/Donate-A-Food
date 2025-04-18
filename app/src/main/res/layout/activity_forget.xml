@@ -1,10 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:id="@+id/main"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    tools:context=".ForgetActivity">-->
+
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/login_back"
     tools:context=".ForgetActivity">
+    <RelativeLayout
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/compny_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="40dp"
+            android:layout_marginRight="-2dp"
+            android:layout_toLeftOf="@id/image"
+            android:text="Donate-A-Food"
+            android:textColor="@color/black"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="53dp"
+            android:layout_height="123dp"
+            android:layout_alignRight="@id/email_feild"
+
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:id="@+id/first_line"
+            android:layout_below="@id/compny_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Oh, no !"
+            android:textColor="@color/black"
+            android:layout_alignStart="@id/second_line"
+            android:textSize="25pt"
+            android:textStyle="bold"
+            android:layout_marginTop="90sp"/>
+
+        <TextView
+            android:id="@+id/second_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/first_line"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="-17dp"
+            android:text="I forget"
+            android:textColor="@color/black"
+            android:textSize="25pt"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Enter your email, phone, or username and we'll send you a link to change a new password"
+            android:layout_marginRight="20sp"
+            android:layout_marginTop="0sp"
+            android:layout_below="@id/second_line"
+            android:textSize="15dp"
+            android:layout_alignStart="@id/second_line"/>
+
+        <EditText
+            android:layout_below="@id/hint"
+            android:id="@+id/email_feild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username, Email or Phone Number"
+            android:textSize="16dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:paddingBottom="20dp"
+            />
+
+        <Button
+            android:id="@+id/foget_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Forget password"
+            android:layout_below="@id/email_feild"
+            android:layout_margin="20sp"
+            android:textColor="@color/white"
+            android:background="@color/black"/>
+
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/bottom_layout"
+            android:layout_below="@id/foget_button"
+            android:layout_marginTop="40dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/login_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Don't have an account ?"
+                android:layout_centerHorizontal="true"
+                android:textSize="15dp"
+                />
+            <TextView
+                android:id="@+id/signUp_activity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign Up"
+                android:layout_alignParentBottom="true"
+                android:textSize="18dp"
+                android:textStyle="bold"
+                android:layout_toRightOf="@id/login_hint"
+                android:clickable="true"
+                android:layout_marginLeft="5dp"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</ScrollView>
