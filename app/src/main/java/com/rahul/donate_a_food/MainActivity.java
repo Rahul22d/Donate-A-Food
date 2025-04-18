@@ -15,10 +15,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -33,8 +35,12 @@ import com.google.android.gms.location.*;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
 
@@ -84,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         setContentView(view);
         setSupportActionBar(binding.toolbar);
 
+        // load profile image
+        loadProfileImage();
         drawer = binding.drawerLayout;
         navigationView = binding.navigationView;
         db = FirebaseDatabase.getInstance().getReference("users");
@@ -281,6 +289,43 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
                 Toast.makeText(this, "Unable to get address", Toast.LENGTH_LONG).show();
             }
         }
+
+        // for change nav image
+        private void loadProfileImage() {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) return;
+
+            String userId = user.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+
+            NavigationView navigationView = findViewById(R.id.navigationView);
+            View headerView = navigationView.getHeaderView(0);
+            ImageView profileImageView = headerView.findViewById(R.id.imageView);
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists() && snapshot.hasChild("imageUrl")) {
+                        String imageUrl = snapshot.child("imageUrl").getValue(String.class);
+
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            // Load image manually without Glide (using AsyncTask)
+                            new ImageLoaderTask(profileImageView).execute(imageUrl);
+                        } else {
+                            profileImageView.setImageResource(R.drawable.logo); // default image
+                        }
+                    } else {
+                        profileImageView.setImageResource(R.drawable.logo); // default image
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    profileImageView.setImageResource(R.drawable.logo); // default image on error
+                }
+            });
+        }
+
 
 
 

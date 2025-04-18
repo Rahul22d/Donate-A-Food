@@ -5,6 +5,8 @@ public class Order {
     private String donorId;
     private String receiverId;
     private String productId;
+    private String donorName;
+    private String donorNumber;
     private String productName;
     private int foodQuantity;
     private String location;
@@ -14,11 +16,14 @@ public class Order {
     public Order() {
     }
 
-    public Order(String orderId, String donorId, String receiverId, String productId, String productName, int foodQuantity, String location, String imageUrl, String status) {
+    public Order(String orderId, String donorId, String receiverId, String productId, String donorName, String donorNumber,
+                 String productName, int foodQuantity, String location, String imageUrl, String status) {
         this.orderId = orderId;
         this.donorId = donorId;
         this.receiverId = receiverId;
         this.productId = productId;
+        this.donorName = donorName;
+        this.donorNumber = donorNumber;
         this.productName = productName;
         this.foodQuantity = foodQuantity;
         this.location = location;
@@ -41,6 +46,8 @@ public class Order {
     public String getReceiverId() {
         return receiverId;
     }
+    public String getDonorName() {return donorName;}
+    public String getDonorNumber() {return donorNumber;}
 
     public String getProductName() {
         return productName;

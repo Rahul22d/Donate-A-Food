@@ -40,6 +40,7 @@ public class HistoryFragment extends Fragment {
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private Query databaseQuery;
+    private String lastRetrievedKey = null;  // Store last retrieved key
     private static final int PAGE_SIZE = 10;
 
     @Override
@@ -91,41 +92,46 @@ public class HistoryFragment extends Fragment {
     }
 
     private void retrieveData() {
+        if (isLoading || isLastPage) return;  // Prevent duplicate queries
         isLoading = true;
 
-        // Add listener to database query to fetch data
+        databaseQuery = (lastRetrievedKey == null)
+                ? databaseReference.orderByKey().limitToFirst(PAGE_SIZE)
+                : databaseReference.orderByKey().startAfter(lastRetrievedKey).limitToFirst(PAGE_SIZE);
+
         databaseQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    isLastPage = true;  // No more data to load
+                    isLastPage = true;
+                    isLoading = false;
                     return;
                 }
 
-                // If the productList is not empty, fetch more data based on the last item
-                if (!productList.isEmpty()) {
-                    // Fetch more data based on the last item's fullName (pagination)
-                    String lastProductFullName = productList.get(productList.size() - 1).getFullName();
-                    databaseQuery = databaseReference.orderByKey().startAfter(lastProductFullName).limitToFirst(PAGE_SIZE);
-                }
+                List<ProductHistory> newProducts = new ArrayList<>();
+                String newLastKey = null;
 
-                // Iterate through the fetched data
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();  // Get unique key
                     String fullName = snapshot.child("foodName").getValue(String.class);
                     Integer foodQuantity = snapshot.child("foodQuantity").getValue(Integer.class);
                     String date = snapshot.child("date").getValue(String.class);
                     String imageUrl = snapshot.child("imageUrl").getValue(String.class);
 
                     if (fullName != null && foodQuantity != null && imageUrl != null && date != null) {
-                        productList.add(new ProductHistory(fullName, foodQuantity, imageUrl, date));
+                        newProducts.add(new ProductHistory(fullName, foodQuantity, imageUrl, date));
+                        newLastKey = key;  // Update key for next pagination
                     }
                 }
 
-                // Notify adapter about the new data
-                productAdapter.notifyDataSetChanged();
+                if (!newProducts.isEmpty()) {
+                    productList.addAll(newProducts);
+                    productAdapter.notifyDataSetChanged();
+                }
+
+                lastRetrievedKey = newLastKey; // Update for next query
                 isLoading = false;
 
-                // If no data was loaded, mark it as the last page
                 if (dataSnapshot.getChildrenCount() < PAGE_SIZE) {
                     isLastPage = true;
                 }
@@ -138,6 +144,55 @@ public class HistoryFragment extends Fragment {
             }
         });
     }
+
+//    private void retrieveData() {
+//        isLoading = true;
+//
+//        // Add listener to database query to fetch data
+//        databaseQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                if (!dataSnapshot.exists()) {
+//                    isLastPage = true;  // No more data to load
+//                    return;
+//                }
+//
+//                // If the productList is not empty, fetch more data based on the last item
+//                if (!productList.isEmpty()) {
+//                    // Fetch more data based on the last item's fullName (pagination)
+//                    String lastProductFullName = productList.get(productList.size() - 1).getFullName();
+//                    databaseQuery = databaseReference.orderByKey().startAfter(lastProductFullName).limitToFirst(PAGE_SIZE);
+//                }
+//
+//                // Iterate through the fetched data
+//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                    String fullName = snapshot.child("foodName").getValue(String.class);
+//                    Integer foodQuantity = snapshot.child("foodQuantity").getValue(Integer.class);
+//                    String date = snapshot.child("date").getValue(String.class);
+//                    String imageUrl = snapshot.child("imageUrl").getValue(String.class);
+//
+//                    if (fullName != null && foodQuantity != null && imageUrl != null && date != null) {
+//                        productList.add(new ProductHistory(fullName, foodQuantity, imageUrl, date));
+//                    }
+//                }
+//
+//                // Notify adapter about the new data
+//                productAdapter.notifyDataSetChanged();
+//                isLoading = false;
+//
+//                // If no data was loaded, mark it as the last page
+//                if (dataSnapshot.getChildrenCount() < PAGE_SIZE) {
+//                    isLastPage = true;
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                isLoading = false;
+//                Toast.makeText(getContext(), "Failed to retrieve data", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
 
     // Product class to represent product data
     public static class ProductHistory {

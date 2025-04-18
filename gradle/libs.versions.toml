@@ -41,6 +41,8 @@ firebaseFirestore = "25.1.1"
 playServicesLocation = "21.3.0"
 playServicesMapsVersion = "18.2.0"
 volley = "1.2.1"
+firebasePerf = "21.0.5"
+googleFirebaseFirebasePerf = "1.4.2"
 
 [libraries]
 appcompat-v140 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -86,8 +88,10 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 play-services-maps-v1820 = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMapsVersion" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
+firebase-perf = { group = "com.google.firebase", name = "firebase-perf", version.ref = "firebasePerf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+google-firebase-firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "googleFirebaseFirebasePerf" }
 

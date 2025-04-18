@@ -1,8 +1,31 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.firebase.perf)
 
 }
+
+// 🔐 Load API keys from secrets.properties or fallback
+val secretsProperties = Properties().apply {
+    val secretsFile = rootProject.file("secrets.properties")
+    if (secretsFile.exists()) {
+        load(secretsFile.inputStream())
+    }
+}
+
+val defaultProperties = Properties().apply {
+    val defaultFile = rootProject.file("local.defaults.properties")
+    if (defaultFile.exists()) {
+        load(defaultFile.inputStream())
+    }
+}
+
+val mapsApiKey = secretsProperties.getProperty("MAPS_API_KEY")
+    ?: defaultProperties.getProperty("MAPS_API_KEY")
+    ?: error("MAPS_API_KEY is missing from both secrets.properties and local.defaults.properties")
+
 
 android {
     namespace = "com.rahul.donate_a_food"
@@ -16,6 +39,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // 🔑 Inject the Google Maps API key into R.string.google_maps_key
+        resValue("string", "google_maps_key", mapsApiKey)
     }
 
     buildTypes {
@@ -52,6 +78,7 @@ dependencies {
 //    implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.play.services.location)
+    implementation(libs.firebase.perf)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -97,9 +124,7 @@ dependencies {
 
 //    implementation (libs.firebase.appcheck.playintegrity)
 //    implementation (libs.firebase.appcheck.playintegrity.v1701)
-
-
-
-
+    implementation (libs.material)
 
 }
+

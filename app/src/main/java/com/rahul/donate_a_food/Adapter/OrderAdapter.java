@@ -315,6 +315,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             if (order.getStatus().equals("Pending")) {
                 holder.btnAccept.setOnClickListener(v -> {
                     acceptOrder(holder.itemView.getContext(), order, holder, position);
+                    holder.btnAccept.setEnabled(false);
+                    holder.btnReject.setEnabled(false);
 
                 });
 
@@ -355,7 +357,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         Log.d("Firebase", "New AcceptedOrder ID: " + newId);
 
-        usersRef.child(order.getDonorId()).addListenerForSingleValueEvent(new ValueEventListener() {
+        usersRef.child(order.getReceiverId()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
@@ -367,12 +369,15 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                         acceptedOrder.put("productId", order.getProductId());
                         acceptedOrder.put("foodName", order.getProductName());
                         acceptedOrder.put("foodQuantity", order.getFoodQuantity());
+                        acceptedOrder.put("donorName", order.getDonorName());
+                        acceptedOrder.put("donorNumber", order.getDonorNumber());
                         acceptedOrder.put("location", order.getLocation());
                         acceptedOrder.put("imageUrl", order.getImageUrl());
                         acceptedOrder.put("status", "Accepted");
-                        acceptedOrder.put("donorName", user.getName());
-                        acceptedOrder.put("number", user.getNumber());
+                        acceptedOrder.put("receiverName", user.getName());
+                        acceptedOrder.put("receiverNumber", user.getNumber());
 
+                        Log.d("Doner details", "Donor Name: " + order.getDonorName() + ", Donor Number: " + order.getDonorNumber());
                         acceptedOrdersRef.child(newId).setValue(acceptedOrder)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d("Firebase", "Order successfully added to AcceptedOrders");
@@ -380,10 +385,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                                     updateOrderStatus(order, "Accepted", holder);
                                     updateFoodQuantity(order.getProductId(), order.getFoodQuantity());
                                     notifyItemChanged(position);
-                                    holder.btnAccept.setEnabled(false);
-                                    holder.btnReject.setEnabled(false);
+
                                 })
                                 .addOnFailureListener(e -> {
+                                    holder.btnAccept.setEnabled(false);
+                                    holder.btnReject.setEnabled(false);
                                     Log.e("Firebase", "Failed to accept order: " + e.getMessage());
                                     Toast.makeText(context, "Failed to accept order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });

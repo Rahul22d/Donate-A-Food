@@ -1,8 +1,10 @@
 package com.rahul.donate_a_food.Fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
@@ -11,6 +13,8 @@ import android.os.Bundle;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -129,13 +133,17 @@ public class ProductFragment extends Fragment {
 
 
 
+
             if(TextUtils.isEmpty(foodName)  || foodQuantity == 0){
                 Toast.makeText(getActivity(), "Please provide all details", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (foodImageUri != null){
-                uploadImageToFirebase(foodImageUri, foodName,  foodDescription, foodQuantity, latitude, longitude, foodType);
+                boolean result = uploadImageToFirebase(foodImageUri, foodName,  foodDescription, foodQuantity, latitude, longitude, foodType);
 //                resetFields();
+                if(result) {
+
+                }
             } else {
 //                saveProductDataToDatabase(foodName, number, foodDescription, foodQuantity, null, latitude, longitude);
 //                resetFields();
@@ -160,27 +168,33 @@ public class ProductFragment extends Fragment {
                 .show();
     }
 
-    private void captureImageFromCamera() {
-        // Create an intent to capture an image
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
-            // Create a temporary file for the image
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Toast.makeText(getContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
-            }
+//
+private void captureImageFromCamera() {
+    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(getActivity(),
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                100);
+        return;
+    }
 
-            // Proceed only if the file was successfully created
-            if (photoFile != null) {
-                foodImageUri = FileProvider.getUriForFile(requireContext(),
-                        "com.rahul.donate_a_food.fileprovider", photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, foodImageUri);
-                cameraLauncher.launch(takePictureIntent);
-            }
+    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    if (takePictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
+        File photoFile = null;
+        try {
+            photoFile = createImageFile();
+        } catch (IOException ex) {
+            Toast.makeText(getContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+        }
+
+        if (photoFile != null) {
+            foodImageUri = FileProvider.getUriForFile(requireContext(),
+                    "com.rahul.donate_a_food.fileprovider", photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, foodImageUri);
+            cameraLauncher.launch(takePictureIntent);
         }
     }
+}
 
     private void pickImageFromGallery() {
         // Create an intent to pick an image from the gallery
@@ -198,7 +212,7 @@ public class ProductFragment extends Fragment {
 
 
     //  Method to upload the image to Firebase Storage
-    private void uploadImageToFirebase(Uri imageUri, String foodName, String foodDescription,
+    private boolean uploadImageToFirebase(Uri imageUri, String foodName, String foodDescription,
                                        int foodQuantity, double latitude, double longitude, String foodType) {
         Bitmap bitmap = null;
         try {
@@ -230,50 +244,8 @@ public class ProductFragment extends Fragment {
             e.printStackTrace();
             Toast.makeText(requireContext(), "Error compressing image", Toast.LENGTH_SHORT).show();
         }
+        return true;
     }
-
-//    private void saveProductDataToDatabase(String foodName,  String foodDescription,
-//                                           int foodQuantity, String imageUrl, double latitude, double longitude, String foodType) {
-//        long currentTimeMillis = System.currentTimeMillis(); // Current time
-//        long expiryTimeMillis = currentTimeMillis + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
-//
-//        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-//        String userId = mAuth.getCurrentUser().getUid();
-//
-//        // Fetch donor details from Firebase Database
-//        userdatabaseReference.child(userId).get().addOnCompleteListener(task -> {
-//            if (task.isSuccessful() && task.getResult().exists()) {
-//                String donorName = task.getResult().child("name").getValue(String.class);
-//                String donorNumber = task.getResult().child("number").getValue(String.class);
-//
-//                if (donorName == null || donorNumber == null) {
-//                    Toast.makeText(getActivity(), "Failed to fetch donor details", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-//
-//                // Create Product object with new donor details
-//                Product product = new Product(foodName,donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName);
-//
-//                // Save product to Firebase
-//                String productId = databaseReference.push().getKey();
-//                if (productId != null) {
-//                    databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
-//                        if (task1.isSuccessful()) {
-//                            Toast.makeText(getActivity(), "Product added successfully", Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            Toast.makeText(getActivity(), "Failed to add product", Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//
-//                    // Save to user's upload history
-//                    HistoryProduct historyProduct = new HistoryProduct(foodName, foodQuantity, imageUrl, new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()));
-//                    userdatabaseReference.child(userId).child("uploadHistory").child(productId).setValue(historyProduct);
-//                }
-//            } else {
-//                Toast.makeText(getActivity(), "Failed to retrieve donor details", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 
     private void saveProductDataToDatabase(String foodName, String foodDescription,
                                            int foodQuantity, String imageUrl, double latitude, double longitude, String foodType) {
@@ -286,7 +258,8 @@ public class ProductFragment extends Fragment {
         userdatabaseReference.child(userId).get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult().exists()) {
                 String donorName = task.getResult().child("name").getValue(String.class);
-                String donorNumber = task.getResult().child("number").getValue(String.class);
+//                String donorNumber = task.getResult().child("number").getValue(String.class);
+                String donorNumber = String.valueOf(task.getResult().child("number").getValue());
 
                 if (donorName == null || donorNumber == null) {
                     Toast.makeText(getActivity(), "Failed to fetch donor details", Toast.LENGTH_SHORT).show();
@@ -316,68 +289,6 @@ public class ProductFragment extends Fragment {
             }
         });
     }
-
-
-
-    private void sendFCMNotification(String token, String title, String message) {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("to", token);
-
-            JSONObject notification = new JSONObject();
-            notification.put("title", title);
-            notification.put("body", message);
-
-            json.put("notification", notification);
-
-            // Send HTTP request to Firebase Cloud Messaging
-//            sendHttpRequestToFCM(json);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-//    public void sendFCMNotification(String userToken, String title, String message, String productId, Context context) {
-//        String fcmServerKey = getFCMServerKey(getActivity());  // Replace with your actual FCM server key
-//        String fcmUrl = "https://fcm.googleapis.com/fcm/send";
-//
-//        RequestQueue requestQueue = Volley.newRequestQueue(context);
-//
-//        try {
-//            JSONObject notification = new JSONObject();
-//            notification.put("title", title);
-//            notification.put("body", message);
-//
-//            JSONObject data = new JSONObject();
-//            data.put("productId", productId);
-//
-//            JSONObject requestBody = new JSONObject();
-//            requestBody.put("to", userToken);
-//            requestBody.put("notification", notification);
-//            requestBody.put("data", data);
-//
-//            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, fcmUrl, requestBody,
-//                    response -> Log.d("FCM", "Notification sent: " + response.toString()),
-//                    error -> Log.e("FCM", "Error sending notification", error)) {
-//                @Override
-//                public Map<String, String> getHeaders() {
-//                    Map<String, String> headers = new HashMap<>();
-//                    headers.put("Authorization", "key=" + fcmServerKey);
-//                    headers.put("Content-Type", "application/json");
-//                    return headers;
-//                }
-//            };
-//
-//            requestQueue.add(request);
-//        } catch (JSONException e) {
-//            Log.e("FCM", "JSON Exception: " + e.getMessage());
-//        }
-    }
-
-
-
-
 
     // 📌 Calculate Distance Between Two Locations
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

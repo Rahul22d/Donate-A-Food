@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.rahul.donate_a_food.databinding.ActivitySignUpBinding;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
@@ -44,15 +45,84 @@ public class SignUpActivity extends AppCompatActivity {
         binding.signUpButton.setOnClickListener(v -> signUpUser());
     }
     // Example: Storing user data when the user signs up
+//    private void signUpUser() {
+//        String email = binding.email.getText().toString();
+//        String name = binding.name.getText().toString();
+//        String phone = binding.number.getText().toString();
+//        String username = binding.userName.getText().toString();
+//        String password = binding.password.getText().toString();
+//        String confirmPassword = binding.confirmPassword.getText().toString();
+//        // check if all fields are filled
+//        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(name) || TextUtils.isEmpty(phone) || TextUtils.isEmpty(username) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+//            Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
+//            return;
+//        } else if (!password.equals(confirmPassword)) {
+//            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+//            return;
+//        } else if (password.length() < 6) {
+//            Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+////        // Create a user in Firebase Authentication and Firestore
+////        mAuth.createUserWithEmailAndPassword(email, password)
+////                .addOnSuccessListener(authResult -> {
+////                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+////                    Map<String, Object> user = new HashMap<>();
+////                    user.put("email", email);
+////                    user.put("name", name);
+////                    user.put("phone", phone);
+////                    user.put("username", username);
+////
+////                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+////                    db.collection("users").document(userId).set(user)
+////                            .addOnSuccessListener(aVoid -> {
+//////                                String userId = mAuth.getCurrentUser().getUid();
+//////                                saveUserDetailsToDatabase(userId, name, username, email);
+////                                // Proceed to the next screen (e.g., food donation page)
+////                                Toast.makeText(this, "Signup successful", Toast.LENGTH_SHORT).show();
+////                            })
+////                            .addOnFailureListener(e -> {
+////                                Toast.makeText(this, "Error signing up", Toast.LENGTH_SHORT).show();
+////                            });
+////                })
+////                .addOnFailureListener(e -> {
+////                    Toast.makeText(this, "Error signing up", Toast.LENGTH_SHORT).show();
+////                });
+////    }
+//        // Create a new user with Firebase Authentication
+//        mAuth.createUserWithEmailAndPassword(email, password)
+//                .addOnCompleteListener(this, task -> {
+//                    if (task.isSuccessful()) {
+//                        // User is signed up successfully, save user details to Firebase Realtime Database
+//                        String userId = mAuth.getCurrentUser().getUid();
+//                        saveUserDetailsToDatabase(userId, name, username, email, phone, currentLatitude, currentLongitude);
+//
+//                        // Display success message
+//                        Toast.makeText(SignUpActivity.this, "Sign Up Successful", Toast.LENGTH_SHORT).show();
+//
+//                        // Optionally navigate to the next activity
+//                        Intent intent = new Intent(SignUpActivity.this, LogInActivity.class);
+//                        startActivity(intent);
+//                        finish();  // Close the Sign Up Activity
+//                    } else {
+//                        // If sign-up fails, display a message to the user
+//                        Toast.makeText(SignUpActivity.this, "Sign Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+//                    }
+//                });
+//    }
+
     private void signUpUser() {
-        String email = binding.email.getText().toString();
-        String name = binding.name.getText().toString();
-        String phone = binding.number.getText().toString();
-        String username = binding.userName.getText().toString();
-        String password = binding.password.getText().toString();
-        String confirmPassword = binding.confirmPassword.getText().toString();
-        // check if all fields are filled
-        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(name) || TextUtils.isEmpty(phone) || TextUtils.isEmpty(username) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+        String email = binding.email.getText().toString().trim();
+        String name = binding.name.getText().toString().trim();
+        String phone = binding.number.getText().toString().trim();
+        String username = binding.userName.getText().toString().trim();
+        String password = binding.password.getText().toString().trim();
+        String confirmPassword = binding.confirmPassword.getText().toString().trim();
+
+        // Validate input fields
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(name) || TextUtils.isEmpty(phone) ||
+                TextUtils.isEmpty(username) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
             Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
             return;
         } else if (!password.equals(confirmPassword)) {
@@ -63,53 +133,49 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-//        // Create a user in Firebase Authentication and Firestore
-//        mAuth.createUserWithEmailAndPassword(email, password)
-//                .addOnSuccessListener(authResult -> {
-//                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-//                    Map<String, Object> user = new HashMap<>();
-//                    user.put("email", email);
-//                    user.put("name", name);
-//                    user.put("phone", phone);
-//                    user.put("username", username);
-//
-//                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//                    db.collection("users").document(userId).set(user)
-//                            .addOnSuccessListener(aVoid -> {
-////                                String userId = mAuth.getCurrentUser().getUid();
-////                                saveUserDetailsToDatabase(userId, name, username, email);
-//                                // Proceed to the next screen (e.g., food donation page)
-//                                Toast.makeText(this, "Signup successful", Toast.LENGTH_SHORT).show();
-//                            })
-//                            .addOnFailureListener(e -> {
-//                                Toast.makeText(this, "Error signing up", Toast.LENGTH_SHORT).show();
-//                            });
-//                })
-//                .addOnFailureListener(e -> {
-//                    Toast.makeText(this, "Error signing up", Toast.LENGTH_SHORT).show();
-//                });
-//    }
-        // Create a new user with Firebase Authentication
+        // Debugging: Log email before checking
+        Toast.makeText(this, "Checking email: " + email, Toast.LENGTH_SHORT).show();
+
+        // Check if email is already associated with Google Sign-In
+        mAuth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<String> signInMethods = task.getResult().getSignInMethods();
+                boolean isGoogleAccount = signInMethods != null && signInMethods.contains("google.com");
+
+                if (isGoogleAccount) {
+                    Toast.makeText(SignUpActivity.this, "This email is linked to Google. Please sign in using Google.", Toast.LENGTH_LONG).show();
+//                } else {
+                    // Email is not linked with Google; proceed with sign-up
+                    registerUser(email, password, name, username, phone);
+                }
+            } else {
+                // Fetch sign-in methods failed, proceed with sign-up (assume email is new)
+                Toast.makeText(SignUpActivity.this, "Could not verify email, proceeding with sign-up", Toast.LENGTH_SHORT).show();
+                registerUser(email, password, name, username, phone);
+            }
+        });
+    }
+
+    // Method to handle Firebase Authentication Sign-Up
+    private void registerUser(String email, String password, String name, String username, String phone) {
         mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // User is signed up successfully, save user details to Firebase Realtime Database
+                .addOnCompleteListener(this, createTask -> {
+                    if (createTask.isSuccessful()) {
+                        // User successfully signed up
                         String userId = mAuth.getCurrentUser().getUid();
                         saveUserDetailsToDatabase(userId, name, username, email, phone, currentLatitude, currentLongitude);
-
-                        // Display success message
                         Toast.makeText(SignUpActivity.this, "Sign Up Successful", Toast.LENGTH_SHORT).show();
 
-                        // Optionally navigate to the next activity
-                        Intent intent = new Intent(SignUpActivity.this, LogInActivity.class);
-                        startActivity(intent);
-                        finish();  // Close the Sign Up Activity
+                        // Navigate to login activity
+                        startActivity(new Intent(SignUpActivity.this, LogInActivity.class));
+                        finish();
                     } else {
-                        // If sign-up fails, display a message to the user
-                        Toast.makeText(SignUpActivity.this, "Sign Up Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        // Sign-up failed, show error
+                        Toast.makeText(SignUpActivity.this, "Sign Up Failed: " + createTask.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
 
 
     // Method to save user details to Firebase Realtime Database

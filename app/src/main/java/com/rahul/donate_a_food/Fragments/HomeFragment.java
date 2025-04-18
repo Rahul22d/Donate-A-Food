@@ -502,9 +502,10 @@ public class HomeFragment extends Fragment {
         orderData.put("receiverId", currentUserId);
         orderData.put("productId", product.getProductId());
         orderData.put("productName", product.getFullName());
+        orderData.put("donorName", product.getOwnerName());
+        orderData.put("donorContactNumber", product.getContactNumber());
         orderData.put("foodQuantity", quantity.get(0));
         orderData.put("location", product.getLocation());
-//        orderData.put("foodDescription", product.getFoodDescription());
         orderData.put("imageUrl", product.getImageUrl());
         orderData.put("status", "Pending");
 
