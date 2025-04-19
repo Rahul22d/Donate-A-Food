@@ -6,8 +6,10 @@ public class OrderBooked {
     private String foodName;
     private int foodQuantity;
     private String location;
+    private double latitude;
+    private double longitude;
     private String imageUrl;
-    private String number;
+    private String donorNumber;
     private String receiverId;
     private String status;
 
@@ -15,14 +17,16 @@ public class OrderBooked {
         // Empty constructor required for Firebase
     }
 
-    public OrderBooked(String donorId, String donorName, String foodName, int foodQuantity, String location, String imageUrl, String number, String receiverId, String status) {
+    public OrderBooked(String donorId, String donorName, String foodName, int foodQuantity, String location, double latitude, double longitude, String imageUrl, String donorNumber, String receiverId, String status) {
         this.donorId = donorId;
         this.donorName = donorName;
         this.foodName = foodName;
         this.foodQuantity = foodQuantity;
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.imageUrl = imageUrl;
-        this.number = number;
+        this.donorNumber = donorNumber;
         this.receiverId = receiverId;
         this.status = status;
     }
@@ -32,8 +36,10 @@ public class OrderBooked {
     public String getFoodName() { return foodName; }
     public int getFoodQuantity() { return foodQuantity; }
     public String getImageUrl() { return imageUrl; }
-    public String getNumber() { return number; }
+    public String getDonorNumber() { return donorNumber; }
     public String getReceiverId() { return receiverId; }
     public String getStatus() { return status; }
     public String getLocation() {return location;}
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
 }

@@ -313,6 +313,7 @@ import com.google.firebase.storage.StorageReference;
 import com.rahul.donate_a_food.ImageLoaderTask;
 import com.rahul.donate_a_food.R;
 import com.rahul.donate_a_food.databinding.FragmentProfileBinding;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.List;
@@ -435,15 +436,13 @@ public class ProfileFragment extends Fragment {
                     String imageUrl = snapshot.child("imageUrl").getValue(String.class);
 
                     if (imageUrl != null && !imageUrl.isEmpty()) {
-                        // Load image using Glide
-//                        Glide.with(requireContext())
-//                                .load(imageUrl)
-//                                .placeholder(R.drawable.logo) // optional loading placeholder
-//                                .error(R.drawable.logo)        // fallback if image fails to load
-//                                .into(imageView2);
+
                         // Load image manually without Glide (using AsyncTask)
                         Toast.makeText(getContext(), "imageUrl: " + imageUrl, Toast.LENGTH_SHORT).show();
-                        new ImageLoaderTask(binding.imageView2).execute(imageUrl);
+//                        new ImageLoaderTask(binding.imageView2).execute(imageUrl);
+
+                        // load imgae using picasso
+                        Picasso.get().load(imageUrl).into(binding.imageView2);
                     } else {
                         binding.imageView2.setImageResource(R.drawable.logo); // default image
                     }

@@ -43,6 +43,7 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.rahul.donate_a_food.Class.Product;
 import com.rahul.donate_a_food.CleanupWorker;
 import com.rahul.donate_a_food.LocationViewModel;
 import com.rahul.donate_a_food.MainActivity;
@@ -198,9 +199,9 @@ public class HomeFragment extends Fragment {
                     if (distanceInKm <= 15) { // Only show products within 15 km radius
 
                         if (fullName != null && foodQuantity != null && foodDescription != null && location != null && imageUrl != null && contactNumber != null) {
-                            productList.add(new Product(fullName, ownerName, foodQuantity, foodDescription, location, distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
+                            productList.add(new Product(fullName, ownerName, foodQuantity, foodDescription, location, latitude, longitude, distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
                         } else if (location == null) {
-                            productList.add(new Product(fullName,ownerName, foodQuantity, foodDescription, "Location not found", distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
+                            productList.add(new Product(fullName,ownerName, foodQuantity, foodDescription, "Location not found",latitude, longitude, distanceInKm, imageUrl, contactNumber, foodType, donorId, productId));
                         }
                     } else {
                         Log.d("coordinate",currentLatitude + " lat, lon "+currentLongitude + " current lat "+latitude + " lon");
@@ -261,75 +262,6 @@ public class HomeFragment extends Fragment {
         }
         return null;
     }
-//    // Method to retrieve location from SharedPreferences
-//    private void getLocationFromPreferences() {
-//        // Retrieve the latitude and longitude from SharedPreferences as Strings
-//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("LocationPrefs", Context.MODE_PRIVATE);
-//        String latString = sharedPreferences.getString("latitude", "0.0"); // Default to "0.0"
-//        String lonString = sharedPreferences.getString("longitude", "0.0"); // Default to "0.0"
-//
-//        // Convert the Strings back to doubles
-//        currentLatitude = Double.parseDouble(latString);
-//        currentLongitude = Double.parseDouble(lonString);
-//    }
-
-
-    // Product class to represent product data
-    public static class Product {
-        private String fullName;
-        private String ownerName;
-        private int foodQuantity;
-        private String foodDescription;
-        private String imageUrl;
-        private String contactNumber;
-        private String location;
-        public float distance;
-        private String foodType;
-        private String donorId;
-        private String productId;
-
-        public Product(String fullName, String ownerName, int foodQuantity, String foodDescription, String location, float distance, String imageUrl, String contactNumber, String foodType, String donorId, String productId) {
-            this.fullName = fullName;
-            this.ownerName = ownerName;
-            this.foodQuantity = foodQuantity;
-            this.foodDescription = foodDescription;
-            this.location = location;
-            this.imageUrl = imageUrl;
-            this.contactNumber = contactNumber;
-            this.distance = distance;
-            this.foodType = foodType;
-            this.donorId = donorId;
-            this.productId = productId;
-
-        }
-
-        public String getFullName() {
-            return fullName;
-        }
-
-        public int getFoodQuantity() {
-            return foodQuantity;
-        }
-        public  float getDistance(){ return distance;}
-        public String getFoodDescription() { return foodDescription; }
-
-        public String getLocation() { return location; }
-
-        public String getImageUrl() {
-            return imageUrl;
-        }
-
-        public String getContactNumber() {
-            return contactNumber;
-        }
-        public String getOwnerName() {return ownerName;}
-        public String getFoodType() {return foodType;}
-
-        public String getDonorId() {
-            return donorId;
-        }
-        public String getProductId() {return productId;}
-    }
 
     // Adapter for RecyclerView
     public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
@@ -348,11 +280,7 @@ public class HomeFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-            //this line add on 26 march-- start
-//            if (productList == null || productList.isEmpty() || position >= productList.size()) {
-//                return; // Prevent crash if list is empty or invalid index
-//            }
-            // end
+
             Product product = productList.get(position);
             holder.fullNameTextView.setText( product.getFullName());
             holder.foodQuantityTextView.setText("Quantity: " + product.getFoodQuantity());
@@ -503,9 +431,11 @@ public class HomeFragment extends Fragment {
         orderData.put("productId", product.getProductId());
         orderData.put("productName", product.getFullName());
         orderData.put("donorName", product.getOwnerName());
-        orderData.put("donorContactNumber", product.getContactNumber());
+        orderData.put("donorNumber", product.getContactNumber());
         orderData.put("foodQuantity", quantity.get(0));
         orderData.put("location", product.getLocation());
+        orderData.put("latitude", product.getLatitude());
+        orderData.put("longitude", product.getLongitude());
         orderData.put("imageUrl", product.getImageUrl());
         orderData.put("status", "Pending");
 

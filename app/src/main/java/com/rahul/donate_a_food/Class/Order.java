@@ -10,6 +10,8 @@ public class Order {
     private String productName;
     private int foodQuantity;
     private String location;
+    private double latitude;
+    private double longitude;
     private String imageUrl;
     private String status;
 
@@ -17,7 +19,7 @@ public class Order {
     }
 
     public Order(String orderId, String donorId, String receiverId, String productId, String donorName, String donorNumber,
-                 String productName, int foodQuantity, String location, String imageUrl, String status) {
+                 String productName, int foodQuantity, String location, double latitude, double longitude, String imageUrl, String status) {
         this.orderId = orderId;
         this.donorId = donorId;
         this.receiverId = receiverId;
@@ -27,6 +29,8 @@ public class Order {
         this.productName = productName;
         this.foodQuantity = foodQuantity;
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.imageUrl = imageUrl;
         this.status = status;
     }
@@ -66,4 +70,9 @@ public class Order {
     }
     public String getProductId() {return productId;}
     public String getLocation() {return location;}
+
+    public double getLatitude() {return latitude;}
+    public double getLongitude() {return longitude;}
+
+
 }

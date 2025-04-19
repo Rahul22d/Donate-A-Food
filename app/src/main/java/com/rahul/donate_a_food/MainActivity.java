@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -310,7 +311,8 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
                         if (imageUrl != null && !imageUrl.isEmpty()) {
                             // Load image manually without Glide (using AsyncTask)
-                            new ImageLoaderTask(profileImageView).execute(imageUrl);
+//                            new ImageLoaderTask(profileImageView).execute(imageUrl);
+                            Picasso.get().load(imageUrl).into(profileImageView);
                         } else {
                             profileImageView.setImageResource(R.drawable.logo); // default image
                         }
