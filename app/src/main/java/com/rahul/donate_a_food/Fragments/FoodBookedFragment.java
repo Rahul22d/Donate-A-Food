@@ -1,95 +1,9 @@
-//package com.rahul.donate_a_food.Fragments;
-//
-//import android.os.Bundle;
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//import android.util.Log;
-//
-//import androidx.annotation.NonNull;
-//import androidx.fragment.app.Fragment;
-//import androidx.recyclerview.widget.LinearLayoutManager;
-//
-//import com.google.firebase.auth.FirebaseAuth;
-//import com.google.firebase.auth.FirebaseUser;
-//import com.google.firebase.database.DataSnapshot;
-//import com.google.firebase.database.DatabaseError;
-//import com.google.firebase.database.DatabaseReference;
-//import com.google.firebase.database.FirebaseDatabase;
-//import com.google.firebase.database.ValueEventListener;
-//import com.rahul.donate_a_food.Adapter.FoodBookedAdapter;
-//import com.rahul.donate_a_food.Class.OrderBooked;
-//
-//import com.rahul.donate_a_food.databinding.FragmentFoodBookedBinding;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//public class FoodBookedFragment extends Fragment {
-//
-//    private FragmentFoodBookedBinding binding;
-//    private DatabaseReference ordersRef;
-//    private List<OrderBooked> orderList;
-//    private FoodBookedAdapter adapter;
-//    private String userId; // Store the current user's ID
-//
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-//                             Bundle savedInstanceState) {
-//        binding = FragmentFoodBookedBinding.inflate(inflater, container, false);
-//
-//        // Get the current user's ID from Firebase Authentication
-//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-//        if (currentUser != null) {
-//            userId = currentUser.getUid(); // Logged-in user ID
-//        }
-//
-//        // Initialize Firebase reference
-//        ordersRef = FirebaseDatabase.getInstance().getReference("AcceptedOrders");
-//
-//        // Initialize RecyclerView
-//        orderList = new ArrayList<OrderBooked>();
-//        adapter = new FoodBookedAdapter(getContext(), orderList);
-//        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-//        binding.recyclerView.setAdapter(adapter);
-//
-//        // Load booked food data for the receiver
-//        loadFoodOrders();
-//
-//        return binding.getRoot();
-//    }
-//
-//    private void loadFoodOrders() {
-//        ordersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                orderList.clear();
-//                for (DataSnapshot orderSnapshot : snapshot.getChildren()) {
-//                    OrderBooked order = orderSnapshot.getValue(OrderBooked.class);
-//                    if (order != null && order.getStatus().equals("Accepted") && order.getReceiverId().equals(userId)) {
-//                        orderList.add(order);
-//                    }
-//                }
-//                adapter.notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                Log.e("FirebaseError", "Failed to load orders: " + error.getMessage());
-//            }
-//        });
-//    }
-//}
-
 package com.rahul.donate_a_food.Fragments;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -100,9 +14,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.gms.location.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
+
 import com.rahul.donate_a_food.Adapter.FoodBookedAdapter;
 import com.rahul.donate_a_food.Class.OrderBooked;
 import com.rahul.donate_a_food.databinding.FragmentFoodBookedBinding;
@@ -117,10 +33,11 @@ public class FoodBookedFragment extends Fragment {
     private List<OrderBooked> orderList;
     private FoodBookedAdapter adapter;
     private String userId;
-    private Handler locationHandler;
-    private Runnable locationRunnable;
 
-    private static final int LOCATION_INTERVAL = 3000;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -139,7 +56,9 @@ public class FoodBookedFragment extends Fragment {
         binding.recyclerView.setAdapter(adapter);
 
         loadFoodOrders();
-        startLocationUpdates();
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
+        requestLocationPermissionAndStartUpdates();
 
         return binding.getRoot();
     }
@@ -165,40 +84,76 @@ public class FoodBookedFragment extends Fragment {
         });
     }
 
-    private void startLocationUpdates() {
-        locationHandler = new Handler();
-        locationRunnable = new Runnable() {
-            @Override
-            public void run() {
-                fetchCurrentLocation();
-                locationHandler.postDelayed(this, LOCATION_INTERVAL);
-            }
-        };
-        locationHandler.post(locationRunnable);
+    private void requestLocationPermissionAndStartUpdates() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            startLocationUpdates();
+        }
     }
 
-    private void fetchCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    private void startLocationUpdates() {
+        LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setInterval(3000)
+                .setFastestInterval(2000);
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    double lat = location.getLatitude();
+                    double lng = location.getLongitude();
+                    Log.d("LocationUpdate", "Lat: " + lat + ", Lng: " + lng);
+                    adapter.updateCurrentLocation(lat, lng);
+                }
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
 
-        LocationManager locationManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-        if (location != null) {
-            double lat = location.getLatitude();
-            double lng = location.getLongitude();
-            adapter.updateCurrentLocation(lat, lng);
+        // Also get immediate fresh location once
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            double lat = location.getLatitude();
+                            double lng = location.getLongitude();
+                            Log.d("InitialLocation", "Lat: " + lat + ", Lng: " + lng);
+                            adapter.updateCurrentLocation(lat, lng);
+                        }
+                    });
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (locationHandler != null) {
-            locationHandler.removeCallbacks(locationRunnable);
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    // Handle runtime permission result
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            } else {
+                Log.e("PermissionDenied", "Location permission was denied.");
+            }
         }
     }
 }
-

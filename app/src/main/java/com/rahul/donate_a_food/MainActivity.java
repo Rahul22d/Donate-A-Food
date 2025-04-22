@@ -42,6 +42,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.onesignal.Continue;
+import com.onesignal.OneSignal;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
 import com.squareup.picasso.Picasso;
 
@@ -84,7 +86,9 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{"android.permission.RECEIVE_SMS", "android.permission.READ_SMS"}, 101);
         }
-
+        // Use this method to prompt for push notifications.
+        // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
+        OneSignal.getNotifications().requestPermission(false, Continue.none());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
@@ -93,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
         // load profile image
         loadProfileImage();
+
+
         drawer = binding.drawerLayout;
         navigationView = binding.navigationView;
         db = FirebaseDatabase.getInstance().getReference("users");

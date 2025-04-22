@@ -1,3 +1,5 @@
+import com.android.ddmlib.Log
+import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -26,6 +28,12 @@ val mapsApiKey = secretsProperties.getProperty("MAPS_API_KEY")
     ?: defaultProperties.getProperty("MAPS_API_KEY")
     ?: error("MAPS_API_KEY is missing from both secrets.properties and local.defaults.properties")
 
+val oneSignalId = secretsProperties.getProperty("ONE_SIGNAL_ID")
+    ?: defaultProperties.getProperty("ONE_SIGNAL_ID")
+    ?: error("ONE_SIGNAL_ID is missing")
+val restApiKey = secretsProperties.getProperty("REST_API_KEY")
+    ?: defaultProperties.getProperty("REST_API_KEY")
+    ?: error("REST_API_KEY is missing")
 
 android {
     namespace = "com.rahul.donate_a_food"
@@ -42,6 +50,10 @@ android {
 
         // 🔑 Inject the Google Maps API key into R.string.google_maps_key
         resValue("string", "google_maps_key", mapsApiKey)
+        // Loading secrets from secrets.properties
+        resValue("string", "one_signal_id", oneSignalId)
+        resValue("string", "REST_API_KEY", restApiKey)
+
     }
 
     buildTypes {
@@ -125,6 +137,11 @@ dependencies {
 //    implementation (libs.firebase.appcheck.playintegrity)
 //    implementation (libs.firebase.appcheck.playintegrity.v1701)
     implementation (libs.material)
+
+    implementation("com.onesignal:OneSignal:[5.1.6, 5.1.99]")
+//    implementation ("com.onesignal:OneSignal:5.1.6")
+
+
 
 }
 

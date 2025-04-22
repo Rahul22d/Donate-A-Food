@@ -32,6 +32,7 @@ googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
 firebaseStorage = "21.0.1"
 firebaseAuth = "23.1.0"
+onesignal = "[5.1.6,5.1.6)"
 osmdroidAndroid = "6.1.9"
 osmdroidAndroidVersion = "6.1.16"
 osmdroidOsmdroidAndroidVersion = "6.1.11"
@@ -79,6 +80,7 @@ navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+onesignal = { module = "com.onesignal:OneSignal", version.ref = "onesignal" }
 osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
 osmdroid-android-v6116 = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroidVersion" }
 osmdroid-osmdroid-android-v6111 = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidOsmdroidAndroidVersion" }

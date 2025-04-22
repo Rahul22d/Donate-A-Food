@@ -29,23 +29,20 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rahul.donate_a_food.LocationViewModel;
 import com.rahul.donate_a_food.MainActivity;
+import com.rahul.donate_a_food.Notification.OneSignalSender;
 import com.rahul.donate_a_food.R;
 import com.rahul.donate_a_food.databinding.FragmentProductBinding;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -53,9 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -101,8 +96,6 @@ public class ProductFragment extends Fragment {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideBottomAppBar();
             ((MainActivity) getActivity()).hideLocation();
-//            latitude = ((MainActivity) getActivity()).getLat();
-//            longitude = ((MainActivity) getActivity()).getLon();
         }
         // get location
         locationViewModel = new ViewModelProvider(requireActivity()).get(LocationViewModel.class);
@@ -139,11 +132,16 @@ public class ProductFragment extends Fragment {
                 return;
             }
             if (foodImageUri != null){
-                boolean result = uploadImageToFirebase(foodImageUri, foodName,  foodDescription, foodQuantity, latitude, longitude, foodType);
-//                resetFields();
-                if(result) {
+                binding.imageView.setVisibility(View.GONE);
+                binding.foodName.setVisibility(View.GONE);
+                binding.foodQuantity.setVisibility(View.GONE);
+                binding.foodDescription.setVisibility(View.GONE);
+                binding.foodCategory.setVisibility(View.GONE);
+                binding.takeImageButton.setVisibility(View.GONE);
+                binding.foodUploadBtn.setVisibility(View.GONE);
+                binding.loading.setVisibility(View.VISIBLE);
+                uploadImageToFirebase(foodImageUri, foodName,  foodDescription, foodQuantity, latitude, longitude, foodType);
 
-                }
             } else {
 //                saveProductDataToDatabase(foodName, number, foodDescription, foodQuantity, null, latitude, longitude);
 //                resetFields();
@@ -212,7 +210,7 @@ private void captureImageFromCamera() {
 
 
     //  Method to upload the image to Firebase Storage
-    private boolean uploadImageToFirebase(Uri imageUri, String foodName, String foodDescription,
+    private void uploadImageToFirebase(Uri imageUri, String foodName, String foodDescription,
                                        int foodQuantity, double latitude, double longitude, String foodType) {
         Bitmap bitmap = null;
         try {
@@ -237,6 +235,15 @@ private void captureImageFromCamera() {
                         });
                     } else {
                         Toast.makeText(requireContext(), "Image upload failed", Toast.LENGTH_SHORT).show();
+                        binding.imageView.setVisibility(View.VISIBLE);
+                        binding.foodName.setVisibility(View.VISIBLE);
+                        binding.foodQuantity.setVisibility(View.VISIBLE);
+                        binding.foodDescription.setVisibility(View.VISIBLE);
+                        binding.foodCategory.setVisibility(View.VISIBLE);
+                        binding.takeImageButton.setVisibility(View.VISIBLE);
+                        binding.foodUploadBtn.setVisibility(View.VISIBLE);
+
+                        binding.loading.setVisibility(View.GONE);
                     }
                 });
             }
@@ -244,7 +251,6 @@ private void captureImageFromCamera() {
             e.printStackTrace();
             Toast.makeText(requireContext(), "Error compressing image", Toast.LENGTH_SHORT).show();
         }
-        return true;
     }
 
     private void saveProductDataToDatabase(String foodName, String foodDescription,
@@ -268,7 +274,9 @@ private void captureImageFromCamera() {
 
                 String productId = databaseReference.push().getKey();
                 Product product = new Product(foodName, donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName, userId, productId);
-
+//                sendNotificationToAllUsers(getContext(), "New Food Upload", "Someone just uploaded: " + foodName);
+//                OneSignalSender.sendToAllUsers(requireContext(), "New Food Available!", "Someone just uploaded food near you!");
+                OneSignalSender.sendNotificationToAll(getContext());
 
                 if (productId != null) {
                     databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
@@ -289,6 +297,29 @@ private void captureImageFromCamera() {
             }
         });
     }
+    public static void sendNotificationToAllUsers(Context context, String title, String message) {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                    String userId = userSnapshot.getKey();
+                    if (userId != null && !userId.isEmpty()) {
+                        Log.d("Fetch id for noti", "user id "+userId);
+//                        NotificationSender.sendFCMNotification(context, token, title, message);
+//                        OneSignalSender.sendNotificationToAll(context);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("FCMNotifier", "Database error: " + error.getMessage());
+            }
+        });
+    }
+
 
     // 📌 Calculate Distance Between Two Locations
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -310,6 +341,16 @@ private void captureImageFromCamera() {
         binding.foodDescription.setText("");
         binding.foodQuantity.setText("");
         binding.imageView.setVisibility(View.GONE);
+
+        // set visible again
+//        binding.imageView.setVisibility(View.VISIBLE);
+        binding.foodName.setVisibility(View.VISIBLE);
+        binding.foodQuantity.setVisibility(View.VISIBLE);
+        binding.foodDescription.setVisibility(View.VISIBLE);
+        binding.foodCategory.setVisibility(View.VISIBLE);
+        binding.takeImageButton.setVisibility(View.VISIBLE);
+        binding.foodUploadBtn.setVisibility(View.VISIBLE);
+        binding.loading.setVisibility(View.GONE);
     }
 
     @Override

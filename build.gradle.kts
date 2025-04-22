@@ -10,6 +10,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+
     }
     dependencies {
         // Add the Firebase plugin classpath
