@@ -1,81 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:layout_height="match_parent">-->
-
-<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
-<!-- dialog_product_details.xml -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:padding="20dp"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <!-- Title of the Product (Product Name) -->
+
     <TextView
         android:id="@+id/productName"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="TextView"
+        android:textSize="18sp"
+        android:textStyle="bold|italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.124"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Product Details -->
     <TextView
         android:id="@+id/ownerName"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"/>
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/productName"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/productName"
+        app:layout_constraintTop_toBottomOf="@+id/productName" />
 
     <TextView
         android:id="@+id/location"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"/>
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/ownerName"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/ownerName"
+        app:layout_constraintTop_toBottomOf="@+id/ownerName" />
 
     <TextView
         android:id="@+id/foodQuantity"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"/>
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/location"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/location"
+        app:layout_constraintTop_toBottomOf="@+id/location" />
 
     <TextView
         android:id="@+id/foodDescription"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"/>
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/foodQuantity"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/foodQuantity"
+        app:layout_constraintTop_toBottomOf="@+id/foodQuantity" />
 
     <TextView
         android:id="@+id/contactNumber"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"/>
-
-<!--     Close button -->
-    <Button
-        android:text="OK"
-        android:id="@+id/btnOk"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-    <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="@+id/foodDescription"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/foodDescription"
+        app:layout_constraintTop_toBottomOf="@+id/foodDescription" />
+
+    <LinearLayout
+        android:id="@+id/a"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:orientation="horizontal"
         android:padding="4dp"
-        android:id="@+id/a"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.546"
-        app:layout_constraintStart_toEndOf="@+id/foodImage"
-        app:layout_constraintTop_toBottomOf="@+id/foodDDescription"
-        app:layout_constraintVertical_bias="0.22">
+        app:layout_constraintStart_toStartOf="@+id/contactNumber"
+        app:layout_constraintTop_toBottomOf="@+id/contactNumber"
+        app:layout_constraintVertical_bias="0.049"
+        tools:ignore="MissingConstraints">
 
         <Button
             android:id="@+id/btn_decrease"
@@ -105,4 +127,121 @@
             android:textSize="18sp" />
     </LinearLayout>
 
-</LinearLayout>
+    <Button
+        android:id="@+id/btnOk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Book Food"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintBottom_toBottomOf="@+id/a"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.485"
+        app:layout_constraintStart_toEndOf="@+id/a"
+        app:layout_constraintTop_toTopOf="@+id/a" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+<!-- dialog_product_details.xml -->
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:orientation="vertical"-->
+<!--    android:padding="20dp"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content">-->
+
+<!--    &lt;!&ndash; Title of the Product (Product Name) &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/productName"-->
+<!--        android:textSize="18sp"-->
+<!--        android:textStyle="bold"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="10dp"/>-->
+
+<!--    &lt;!&ndash; Product Details &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/ownerName"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="5dp"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/location"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="5dp"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/foodQuantity"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="5dp"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/foodDescription"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="5dp"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/contactNumber"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="10dp"/>-->
+
+<!--&lt;!&ndash;     Close button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnOk"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Book Food" />-->
+<!--    <LinearLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:padding="4dp"-->
+<!--        android:id="@+id/a"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.546"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/foodImage"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/foodDDescription"-->
+<!--        app:layout_constraintVertical_bias="0.22">-->
+
+<!--        <Button-->
+<!--            android:id="@+id/btn_decrease"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="-"-->
+<!--            android:textColor="#0C0C0C"-->
+<!--            android:textSize="18sp"-->
+<!--            android:textStyle="bold" />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tv_value"-->
+<!--            android:layout_width="40dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="1"-->
+<!--            android:textColor="#0B0A0A"-->
+<!--            android:textSize="18sp" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/btn_increase"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="+"-->
+<!--            android:textSize="18sp" />-->
+<!--    </LinearLayout>-->
+
+<!--</LinearLayout>-->
+
+

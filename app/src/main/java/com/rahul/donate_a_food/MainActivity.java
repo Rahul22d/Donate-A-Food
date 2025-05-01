@@ -44,6 +44,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.onesignal.Continue;
 import com.onesignal.OneSignal;
+import com.rahul.donate_a_food.Class.ApplicationClass;
 import com.rahul.donate_a_food.databinding.ActivityMainBinding;
 import com.squareup.picasso.Picasso;
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
     private Double currentLatitude, currentLongitude;
 
     private LocationViewModel locationViewModel;
+    BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +91,16 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         // Use this method to prompt for push notifications.
         // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
         OneSignal.getNotifications().requestPermission(false, Continue.none());
+//        String playerId = OneSignal.getUser().getPushSubscription().getId();
+//        Log.d("OneSignal", "Player ID: " + playerId);
+        String playerId = OneSignal.getUser().getPushSubscription().getId();
+        boolean isSubscribed = OneSignal.getUser().getPushSubscription().getOptedIn();
 
+        Log.d("OneSignal", "Player ID: " + playerId + ", Subscribed: " + isSubscribed);
+
+        if(isSubscribed) {
+            ApplicationClass.savePlayerIdToFirebase(playerId);
+        }
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
@@ -97,6 +108,9 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
 
         // load profile image
         loadProfileImage();
+
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView.setSelectedItemId(R.id.nav_add);  // 👈 safe in Java, not XML
 
 
         drawer = binding.drawerLayout;
@@ -395,6 +409,8 @@ public class MainActivity extends AppCompatActivity implements LocationPass {
         super.onResume(); // Sticky notes received from Android if
         showLocation();
 //        requestLocationUpdates();
+
     }
+
 }
 

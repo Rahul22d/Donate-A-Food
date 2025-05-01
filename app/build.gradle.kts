@@ -140,6 +140,10 @@ dependencies {
 
     implementation("com.onesignal:OneSignal:[5.1.6, 5.1.99]")
 //    implementation ("com.onesignal:OneSignal:5.1.6")
+//    dependencies {
+        implementation (libs.firebase.appcheck.playintegrity.v1700) // or latest
+//    }
+    implementation (libs.ucrop)
 
 
 

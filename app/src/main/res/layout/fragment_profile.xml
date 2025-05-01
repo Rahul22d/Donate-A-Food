@@ -104,38 +104,45 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/imageView2"
+        android:layout_marginStart="40dp"
         android:layout_marginTop="88dp"
-        android:hint="Password"
         android:visibility="gone"
+        android:layout_marginEnd="40dp"
+        android:hint="Password"
+        android:inputType="textPassword"
         android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView2"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-16dp" />
+        tools:ignore="MissingConstraints" />
 
     <EditText
         android:id="@+id/confirm_password"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/pass_feild"
         android:layout_marginTop="56dp"
         android:hint="Confirm password"
         android:visibility="gone"
+        android:inputType="text"
         android:paddingBottom="20dp"
         android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/pass_feild"
+        app:layout_constraintStart_toStartOf="@+id/pass_feild"
         app:layout_constraintTop_toBottomOf="@+id/pass_feild"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-28dp" />
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/confirm_password_btn"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/confirm_password"
         android:layout_marginTop="40dp"
         android:visibility="gone"
         android:background="@color/black"
         android:text="Confirm Password"
+        app:layout_constraintEnd_toEndOf="@+id/confirm_password"
+        app:layout_constraintStart_toStartOf="@+id/confirm_password"
         app:layout_constraintTop_toBottomOf="@+id/confirm_password"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp" />
+        tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>

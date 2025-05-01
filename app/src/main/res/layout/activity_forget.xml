@@ -41,7 +41,6 @@
             android:layout_width="53dp"
             android:layout_height="123dp"
             android:layout_alignRight="@id/email_feild"
-
             android:src="@drawable/logo" />
 
         <TextView
@@ -93,7 +92,7 @@
             />
 
         <Button
-            android:id="@+id/foget_button"
+            android:id="@+id/forget_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Forget password"
@@ -110,7 +109,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:id="@+id/bottom_layout"
-            android:layout_below="@id/foget_button"
+            android:layout_below="@id/forget_button"
             android:layout_marginTop="40dp"
             android:gravity="center">
 

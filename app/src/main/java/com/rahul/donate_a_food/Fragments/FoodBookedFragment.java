@@ -1,13 +1,18 @@
 package com.rahul.donate_a_food.Fragments;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -21,8 +26,10 @@ import com.google.firebase.database.*;
 
 import com.rahul.donate_a_food.Adapter.FoodBookedAdapter;
 import com.rahul.donate_a_food.Class.OrderBooked;
+import com.rahul.donate_a_food.LogInActivity;
 import com.rahul.donate_a_food.databinding.FragmentFoodBookedBinding;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,10 +51,19 @@ public class FoodBookedFragment extends Fragment {
         binding = FragmentFoodBookedBinding.inflate(inflater, container, false);
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            userId = currentUser.getUid();
-        }
+        boolean isUserLoggedIn = currentUser != null;
 
+        if (!isUserLoggedIn) {
+            binding.recyclerView.setVisibility(View.GONE);
+            binding.textView.setVisibility(View.VISIBLE);
+            binding.login.setVisibility(View.VISIBLE);
+            binding.login.setOnClickListener(v -> {
+                Intent intent = new Intent(getContext(), LogInActivity.class);
+                startActivity(intent);
+            });
+            return binding.getRoot();
+        }
+        userId = currentUser.getUid();
         ordersRef = FirebaseDatabase.getInstance().getReference("AcceptedOrders");
 
         orderList = new ArrayList<>();
@@ -95,7 +111,7 @@ public class FoodBookedFragment extends Fragment {
     private void startLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .setInterval(3000)
+                .setInterval(5000)
                 .setFastestInterval(2000);
 
         locationCallback = new LocationCallback() {

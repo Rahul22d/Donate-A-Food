@@ -1,20 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--<menu xmlns:android="http://schemas.android.com/apk/res/android">-->
+<!--    &lt;!&ndash; Location item &ndash;&gt;-->
+<!--    <item-->
+<!--        android:id="@+id/nav_order"-->
+<!--        android:icon="@drawable/baseline_add_location_24"-->
+<!--        android:title="Booked Food" />-->
+
+<!--    &lt;!&ndash; Profile item &ndash;&gt;-->
+<!--    <item-->
+<!--        android:id="@+id/nav_add"-->
+<!--        android:title=""-->
+<!--        android:enabled="false"/>-->
+
+<!--    &lt;!&ndash; Settings item (or another item) &ndash;&gt;-->
+<!--    <item-->
+<!--        android:id="@+id/nav_account"-->
+<!--        android:icon="@drawable/baseline_account_circle_24"-->
+<!--        android:title="Profile" />-->
+<!--</menu>-->
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Location item -->
+
+    <!-- Booked Food Item -->
     <item
         android:id="@+id/nav_order"
         android:icon="@drawable/baseline_add_location_24"
-        android:title="Booked Food" />
+        android:title="Booked Food"
+        android:checkable="true"/>
 
-    <!-- Profile item -->
+    <!-- Add Item (Middle) -->
     <item
         android:id="@+id/nav_add"
         android:title=""
-        android:enabled="false"/>
+        android:enabled="false"
+        android:checkable="false"/>
 
-    <!-- Settings item (or another item) -->
+    <!-- Profile Item -->
     <item
         android:id="@+id/nav_account"
         android:icon="@drawable/baseline_account_circle_24"
-        android:title="Profile" />
+        android:title="Profile"
+        android:checkable="true"/>
+
 </menu>

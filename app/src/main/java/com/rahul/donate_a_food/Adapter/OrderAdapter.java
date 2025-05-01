@@ -20,7 +20,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.rahul.donate_a_food.Class.ApplicationClass;
 import com.rahul.donate_a_food.Class.Order;
+import com.rahul.donate_a_food.Fragments.ProductFragment;
+import com.rahul.donate_a_food.Notification.OneSignalSender;
 import com.rahul.donate_a_food.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -153,6 +156,23 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                                     updateOrderStatus(order, "Accepted", holder);
                                     updateFoodQuantity(order.getProductId(), order.getFoodQuantity());
                                     notifyItemChanged(position);
+
+                                    usersRef.child(order.getReceiverId()).child("fcmToken")
+                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    String fcmToken = snapshot.getValue(String.class);
+                                                    Log.d("Firebase", "FCM Token: " + fcmToken);
+                                                    OneSignalSender.sendNotificationToTargetUser(context, "Order Accepted", "Your order has been accepted by " + user.getName(), fcmToken);
+
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    Log.e("Firebase", "Failed to read FCM Token", error.toException());
+                                                }
+                                            });
+
 
                                 })
                                 .addOnFailureListener(e -> {

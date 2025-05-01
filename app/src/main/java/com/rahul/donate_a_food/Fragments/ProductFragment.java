@@ -166,33 +166,37 @@ public class ProductFragment extends Fragment {
                 .show();
     }
 
-//
-private void captureImageFromCamera() {
-    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions(getActivity(),
-                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                100);
-        return;
-    }
-
-    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-    if (takePictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
-        File photoFile = null;
-        try {
-            photoFile = createImageFile();
-        } catch (IOException ex) {
-            Toast.makeText(getContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+    private void captureImageFromCamera() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(),
+                    new String[]{Manifest.permission.CAMERA},
+                    100);
+            return;
         }
 
-        if (photoFile != null) {
-            foodImageUri = FileProvider.getUriForFile(requireContext(),
-                    "com.rahul.donate_a_food.fileprovider", photoFile);
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, foodImageUri);
-            cameraLauncher.launch(takePictureIntent);
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                Toast.makeText(getContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+            }
+
+            if (photoFile != null) {
+                foodImageUri = FileProvider.getUriForFile(
+                        requireContext(),
+                        requireContext().getPackageName() + ".fileprovider", // <-- safer
+                        photoFile
+                );
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, foodImageUri);
+                takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                cameraLauncher.launch(takePictureIntent);
+            }
         }
     }
-}
+
 
     private void pickImageFromGallery() {
         // Create an intent to pick an image from the gallery
@@ -274,9 +278,7 @@ private void captureImageFromCamera() {
 
                 String productId = databaseReference.push().getKey();
                 Product product = new Product(foodName, donorNumber, foodDescription, foodQuantity, imageUrl, latitude, longitude, expiryTimeMillis, foodType, donorName, userId, productId);
-//                sendNotificationToAllUsers(getContext(), "New Food Upload", "Someone just uploaded: " + foodName);
-//                OneSignalSender.sendToAllUsers(requireContext(), "New Food Available!", "Someone just uploaded food near you!");
-                OneSignalSender.sendNotificationToAll(getContext());
+                sendNotificationToAllUsers(getContext(),"New Food Upload", "Food name : " + foodName + " and quantity : " + foodQuantity, latitude, longitude);
 
                 if (productId != null) {
                     databaseReference.child(productId).setValue(product).addOnCompleteListener(task1 -> {
@@ -297,7 +299,7 @@ private void captureImageFromCamera() {
             }
         });
     }
-    public static void sendNotificationToAllUsers(Context context, String title, String message) {
+    public static void sendNotificationToAllUsers(Context context, String title, String message, double latitude, double longitude) {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -309,6 +311,13 @@ private void captureImageFromCamera() {
                         Log.d("Fetch id for noti", "user id "+userId);
 //                        NotificationSender.sendFCMNotification(context, token, title, message);
 //                        OneSignalSender.sendNotificationToAll(context);
+                        double lat = userSnapshot.child("latitude").getValue(Double.class);
+                        double log = userSnapshot.child("longitude").getValue(Double.class);
+                        if(calculateDistance(lat, log, latitude, longitude) <= 15) {
+                            String playerId = userSnapshot.child("fcmToken").getValue(String.class);
+                            Log.d("PlayerId", "playerId" + playerId);
+                            OneSignalSender.sendNotificationToTargetUser(context, title, message, playerId);
+                        }
                     }
                 }
             }
@@ -322,7 +331,7 @@ private void captureImageFromCamera() {
 
 
     // 📌 Calculate Distance Between Two Locations
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         double earthRadius = 6371; // Earth's radius in km
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);

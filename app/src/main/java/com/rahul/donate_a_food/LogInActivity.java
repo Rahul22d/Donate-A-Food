@@ -23,7 +23,7 @@ import com.rahul.donate_a_food.databinding.ActivityLogInBinding;
 import java.util.Arrays;
 
 public class LogInActivity extends AppCompatActivity {
-    ActivityLogInBinding binding;
+    private ActivityLogInBinding binding;
     private Button loginButton;
     private TextView signUp_link, forget_link;
 
